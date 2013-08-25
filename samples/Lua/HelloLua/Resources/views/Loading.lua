@@ -1,0 +1,41 @@
+Loading = class()
+function Loading:ctor()
+    self.bg = CCLayer:create()
+    registerTouch(self)
+    registerUpdate(self)
+
+    local temp = setColor(setSize(setPos(setAnchor(addSprite(self.bg, "images/loadMain.png"), {0, 0}), {0, 0}), global.director.disSize), {255, 255, 255, 255})
+    setSize(setPos(setAnchor(addSprite(self.bg, "images/wangguoLogo.png"), {0, 0}), {19,  fixY(480, 4, 116)}), {184, 116})
+    addAction(setSize(setPos(setAnchor(addSprite(self.bg, "images/loadingCircle.png"), {0.5, 0.5}), {763, fixY(480, 37, 0)}), {50, 57}), repeatForever(rotateby(2000, 360)))
+    setSize(setPos(setAnchor(addSprite(self.bg, "images/loadingWord.png"), {0, 0}), {607, fixY(480, 23, 29)}), {129, 29}) 
+    addAction(setAnchor(setPos(addSprite(self.bg, nil), {0, 0}), {0, 0}), repeatForever(animate(1500, frames("images/lighting%d.png", 0, 6))))
+    
+    self.processNum = altasWord('red', '0%')
+    self.bg:addChild(self.processNum)
+    local sz = self.processNum:getContentSize()
+    setPos(setAnchor(self.processNum, {0.5, 0.5}), {400, fixY(480, 394, sz.height)})
+
+    self.passTime = 0
+    self.curProcess = 0
+end
+function Loading:touchBegan(x, y)
+    return true
+end
+function Loading:touchMoved(x, y)
+end
+function Loading:touchEnded(x, y)
+end
+function Loading:update(diff)
+    self.passTime = self.passTime+diff
+    if self.passTime > 0.5 then
+        if self.curProcess < 100 then
+            self.curProcess = self.curProcess + 1
+            self.processNum:removeFromParentAndCleanup(true)
+            self.processNum = altasWord("red", ''..self.curProcess..'%')
+            self.bg:addChild(self.processNum)
+            local sz = self.processNum:getContentSize()
+            setPos(setAnchor(self.processNum, {0.5, 0.5}), {400, fixY(480, 394, sz.height)})
+        end
+        self.passTime = 0
+    end
+end

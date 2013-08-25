@@ -1,0 +1,8 @@
+require "util"
+require "Class"
+require "Event"
+require "views.Dark"
+require "Global.director"
+require "Global.GlobalController"
+require "views.CastleScene"
+require "views.Loading"
