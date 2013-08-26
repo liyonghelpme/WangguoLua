@@ -35,10 +35,12 @@ function Director:pushView(view, dark, autoPop)
     else
         self.curScene.bg:addChild(view.bg)
         table.insert(self.stack, view)
+        print('push View', #self.stack)
     end
 end
 
 function Director:popView()
+    print('popView', #self.stack)
     local v = self.stack[#self.stack]
     v.bg:removeFromParentAndCleanup(true)
     table.remove(self.stack, #self.stack)

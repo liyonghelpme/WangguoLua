@@ -3,6 +3,7 @@ function Loading:ctor()
     self.bg = CCLayer:create()
     registerTouch(self)
     registerUpdate(self)
+    registerEnterOrExit(self)
 
     local temp = setColor(setSize(setPos(setAnchor(addSprite(self.bg, "images/loadMain.png"), {0, 0}), {0, 0}), global.director.disSize), {255, 255, 255, 255})
     setSize(setPos(setAnchor(addSprite(self.bg, "images/wangguoLogo.png"), {0, 0}), {19,  fixY(480, 4, 116)}), {184, 116})
@@ -17,6 +18,10 @@ function Loading:ctor()
 
     self.passTime = 0
     self.curProcess = 0
+    self.hopeProcess = 0
+
+    --print("enterScene")
+    Event:registerEvent(EVENT_TYPE.INITDATA, self)
 end
 function Loading:touchBegan(x, y)
     return true
@@ -35,7 +40,27 @@ function Loading:update(diff)
             self.bg:addChild(self.processNum)
             local sz = self.processNum:getContentSize()
             setPos(setAnchor(self.processNum, {0.5, 0.5}), {400, fixY(480, 394, sz.height)})
+        elseif self.hopeProcess == 100 then
+            --可能在loading的过程中出现新的对话框么 不能出现必须loading结束
+            --sendMsg 检测场景
+            global.director:popView()
+            --removeSelf(self.bg)
+            Event:unregisterEvent(EVENT_TYPE.INITDATA, self)
         end
         self.passTime = 0
+    end
+end
+function Loading:enterScene()
+
+end
+function Loading:exitScene()
+
+end
+function Loading:receiveMsg(name, msg)
+    print('receiveMsg')
+    if name == EVENT_TYPE.INITDATA then
+        --self.curProcess = 100
+        self.curProcess = 99
+        self.hopeProcess = 100
     end
 end

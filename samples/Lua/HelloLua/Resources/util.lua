@@ -26,6 +26,9 @@ function registerEnterOrExit(obj)
         if tag == 'enter' then
             obj:enterScene()
         elseif tag == 'exit' then
+            if obj.updateFunc ~= nil then
+                CCDirector:sharedDirector():getScheduler():unscheduleScriptEntry(obj.updateFunc)
+            end
             obj:exitScene()
         end
     end
@@ -210,7 +213,7 @@ end
 --修正key --->xxx.plist/x.png
 --降低资源包
 function addPlistSprite(name)
-    print("addPlistSprite", name)
+    --print("addPlistSprite", name)
     local dict = CCDictionary:createWithContentsOfFile('images/'..name)
     local metaData = tolua.cast(dict:objectForKey("metadata"), 'CCDictionary')
     local texturePath = metaData:valueForKey("textureFileName"):getCString()
