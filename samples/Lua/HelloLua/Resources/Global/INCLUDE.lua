@@ -9,6 +9,6 @@ require "Global.director"
 require "Global.User"
 require "Global.GlobalController"
 
-
+require "views.StandardTouchHandler"
 require "views.CastleScene"
 require "views.Loading"

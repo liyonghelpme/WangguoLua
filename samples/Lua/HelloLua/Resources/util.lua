@@ -1,3 +1,26 @@
+local sim = require "SimpleJson"
+function registerMultiTouch(obj)
+    --x y id x y id  x y id
+    local function onTouch(eventType, touches)
+        --print("onTouch", eventType, sim:encode(touches))
+        --[[
+        table.insert(touches, 400)
+        table.insert(touches, 200)
+        table.insert(touches, 1)
+        --]]
+        if eventType == "began" then   
+            return obj:touchesBegan(touches)
+        elseif eventType == "moved" then
+            return obj:touchesMoved(touches)
+        elseif eventType == "ended" then
+            return obj:touchesEnded(touches)
+        elseif eventType == "cancelled" then
+        end
+    end
+    --single Touch
+    obj.bg:registerScriptTouchHandler(onTouch, true, kCCMenuHandlerPriority, true)
+    obj.bg:setTouchEnabled(true)
+end
 function registerTouch(obj)
     local function onTouch(eventType, x, y)
         if eventType == "began" then   
@@ -127,6 +150,10 @@ function distance2(a, b)
     local dx, dy = a[1]-b[1], a[2]-b[2]
     return dx*dx+dy*dy
 end
+function distance(a, b)
+    local dx, dy = a[1]-b[1], a[2]-b[2]
+    return math.sqrt(dx*dx+dy*dy)
+end
 function scaleBy(v, s)
     return {v[1]*s, v[2]*s}
 end
@@ -137,6 +164,11 @@ function setSize(sp, size)
     sp:setScaleY(size[2]/sz.height)
     return sp
 end
+function setContentSize(sp, sz)
+    sp:setContentSize(CCSizeMake(sz[1], sz[2]))
+    return sp
+end
+
 function setAnchor(sp, anchor)
     sp:setAnchorPoint(ccp(anchor[1], anchor[2]))
     return sp
@@ -276,4 +308,35 @@ end
 
 function removeSelf(obj)
     obj:removeFromParentAndCleanup(true)
+end
+function convertMultiToArr(touches)
+    local lastPos = {}
+    local ids = {}
+    local x, y
+    local count = 0
+    for i, v in ipairs(touches) do
+        if (i-1) % 3 == 0 then
+            x = v
+        elseif (i-1) % 3 == 1 then
+            y = v
+        else 
+            lastPos[v] = {x, y}
+            count = count+1
+            table.insert(ids, v)
+        end
+    end 
+    --从0 开始排序touch id
+    table.sort(ids)
+    local temp = {}
+    for k, v in ipairs(ids) do
+        temp[k-1] = lastPos[v]
+    end
+    temp.count = count
+    return temp
+end
+
+function setDesignScale(sp)
+    sp:setScaleX(global.director.disSize[1]/global.director.designSize[1])
+    sp:setScaleY(global.director.disSize[2]/global.director.designSize[2])
+    return sp
 end
