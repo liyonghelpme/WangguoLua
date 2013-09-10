@@ -700,7 +700,7 @@ end
 function checkInChild(bg, pos)
     local sub = bg:getChildren()
     local count = bg:getChildrenCount()
-    for i=0, count, 1 do
+    for i=0, count-1, 1 do
         local child = tolua.cast(sub:objectAtIndex(i), 'CCNode')
         local np = child:convertToNodeSpace(ccp(pos[1], pos[2]))
         if checkIn(np.x, np.y, child:getContentSize()) then
@@ -795,6 +795,7 @@ function client2Server(t)
 end
 function setTexture(sp, tex)
     local t = CCTextureCache:sharedTextureCache():addImage(tex)
+    --print('setTexture', sp, t)
     sp:setTexture(t)
     return sp
 end
@@ -821,4 +822,12 @@ function getLevelUpNeedExp(level)
 end
 function getAni(id)
     return buildAnimate[id]
+end
+function adjustZord(bg, z)
+    bg:retain()
+    local par = bg:getParent()
+    removeSelf(bg)
+    par:addChild(bg, z)
+    bg:release()
+    return bg
 end

@@ -18,11 +18,14 @@ local function main()
 
     ---------------
     require "Global.INCLUDE"
-    global.director:runWithScene(CastleScene.new())
-    global.director:pushView(Loading.new())
-    --等待加入场景之后 再初始化
-    global.user:initData()
-
+    require "MyDia.MainDialog"
+    require "MyDia.AllHeroes"
+    require "MyDia.AllLevel"
+    require "MyDia.AllUser"
+    require "MyDia.AllFriend"
+    require 'MyDia.Formation'
+    
+    global.director:runWithScene(mainScene())
 end
 
 xpcall(main, __G__TRACKBACK__)

@@ -27,6 +27,7 @@ end
 --view 封装了 CCNode
 function Director:pushView(view, dark, autoPop)
     if dark == 1 then
+        print('pushView', dark)
         local temp = {}
         temp.bg = CCNode:create()
         local d = Dark.new()
