@@ -1,5 +1,5 @@
 AllFriend = class()
-function AllFriend:ctor(mainDialog)
+function AllFriend:ctor(mainDialog, enemyUser)
     self.INIT_X = 0
     self.INIT_Y = 0
     self.WIDTH = 457
@@ -10,6 +10,7 @@ function AllFriend:ctor(mainDialog)
     self.TabNum = #self.content
     self.data = {}
     self.mainDialog = mainDialog
+    self.enemyUser = enemyUser
 
     self.bg = CCLayer:create()
     self.flowTab = setPos(addNode(self.bg), {20, self.INITOFF})
@@ -85,7 +86,7 @@ function AllFriend:touchEnded(x, y)
                 global.director:popView()
                 return
             else
-                global.director:pushView(Formation.new(self.mainDialog, self.allFriend[i]['uid']), 1, 0)
+                global.director:pushView(Formation.new(self.mainDialog, self.allFriend[i]['uid'], self.enemyUser), 1, 0)
             end
         end
     end

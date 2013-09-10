@@ -1,6 +1,6 @@
 local simple = require "dkjson"
 Formation = class()
-function Formation:ctor(mainDialog)
+function Formation:ctor(mainDialog, friendUid, enemyUser)
     self.INIT_X = 0
     self.INIT_Y = 0
     self.WIDTH = 457
@@ -11,6 +11,8 @@ function Formation:ctor(mainDialog)
     self.TabNum = #self.content
     self.data = {}
     self.mainDialog = mainDialog
+    self.friendUid = friendUid
+    self.enemyUser = enemyUser
 
     self.bg = CCLayer:create()
     self.flowTab = setPos(addNode(self.bg), {20, self.INITOFF})
