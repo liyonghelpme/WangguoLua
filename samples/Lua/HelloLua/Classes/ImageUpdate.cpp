@@ -94,6 +94,7 @@ bool ImageUpdate::checkUpdate() {
     string ts((char*)data, (size_t)fsize);
     CCLog("all.ini content %s %x %d", ts.c_str(), data, fsize);
     map<string, string> *temp = handleIni((char*)data, fsize);
+    CCLog("old pictures %d", temp->size());
     delete [] data;
     for(map<string, string>::iterator it=temp->begin(); it != temp->end(); it++) {
 		CCLog("old files %s %s", it->first.c_str(), it->second.c_str());
@@ -130,6 +131,9 @@ bool ImageUpdate::checkUpdate() {
     //verfileSize = fsize;
 
     CCLog("need Update Image %d", needUpdate.size());
+    for(vector<string>::iterator it=needUpdate.begin(); it != needUpdate.end(); it++) {
+		CCLog("update %s ", (*it).c_str());
+    }
 
     if(needUpdate.size() > 0)
         return true;
