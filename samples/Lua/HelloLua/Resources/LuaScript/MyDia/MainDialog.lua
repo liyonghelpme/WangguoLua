@@ -21,6 +21,8 @@ function MainDialog:ctor()
     self.bg:addChild(self.touch.bg)
     
     global.httpController:addRequest('getAllHeroData', dict(), self.getAllHeroData, nil, self)
+
+    setPos(addSprite(self.bg, "green2.png"), {100, 100})
 end
 function MainDialog:getAllHeroData(rep, param)
     self.allHeroData = {}

@@ -2,6 +2,9 @@
 #define  _APP_DELEGATE_H_
 
 #include "CCApplication.h"
+#include "AssetsManager.h"
+#include <string>
+using namespace std;
 
 /**
 @brief    The cocos2d Application.
@@ -32,6 +35,11 @@ public:
     @param  the pointer of the application
     */
     virtual void applicationWillEnterForeground();
+
+public:
+    string pathToSave;
+    void updateFiles();
+
 };
 
 #endif // _APP_DELEGATE_H_
