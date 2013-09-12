@@ -51,6 +51,16 @@ bool AppDelegate::applicationDidFinishLaunching()
 
     CCScriptEngineManager::sharedManager()->setScriptEngine(pEngine);
 
+    //根据config.ini 配置UserDefault 
+    unsigned long fsize;
+    unsigned char *data = CCFileUtils::sharedFileUtils()->getFileData("config.ini", "r", &fsize);
+    map<string, string> *nm = handleIni((char*)data, fsize); 
+    delete []data;
+    CCUserDefault *def = CCUserDefault::sharedUserDefault();
+    for(map<string, string>::iterator it=nm->begin(); it!=nm->end(); it++) {
+		def->setStringForKey(it->first.c_str(), it->second);
+    }
+    delete nm;
 
     updateFiles();
 
@@ -72,7 +82,7 @@ void AppDelegate::updateFiles() {
         unsigned char *data = CCFileUtils::sharedFileUtils()->getFileData("config.ini", "r", &fsize);
         map<string, string> *nm = handleIni((char*)data, fsize); 
         delete []data;
-		pAssetsManager = new AssetsManager(((*nm)["baseUrl"]+(*nm)["zipFile"]).c_str(), ((*nm)["baseUrl"]+(*nm)["versionFile"]).c_str());
+		pAssetsManager = new AssetsManager(((*nm)["codeUrl"]+(*nm)["zipFile"]).c_str(), ((*nm)["codeUrl"]+(*nm)["versionFile"]).c_str());
         delete nm;
     }
     bool suc = false;
