@@ -78,12 +78,8 @@ void AppDelegate::updateFiles() {
     pathToSave = CCFileUtils::sharedFileUtils()->getWritablePath();
     CCLog("pathToSave %s", pathToSave.c_str());
     if(pAssetsManager == NULL) {
-        unsigned long fsize;
-        unsigned char *data = CCFileUtils::sharedFileUtils()->getFileData("config.ini", "r", &fsize);
-        map<string, string> *nm = handleIni((char*)data, fsize); 
-        delete []data;
-		pAssetsManager = new AssetsManager(((*nm)["codeUrl"]+(*nm)["zipFile"]).c_str(), ((*nm)["codeUrl"]+(*nm)["versionFile"]).c_str());
-        delete nm;
+        CCUserDefault *def = CCUserDefault::sharedUserDefault();
+		pAssetsManager = new AssetsManager((def->getStringForKey("codeUrl")+def->getStringForKey("zipFile")).c_str(), (def->getStringForKey("codeUrl")+def->getStringForKey("versionFile")).c_str());
     }
     bool suc = false;
     if(pAssetsManager->checkUpdate()) {
@@ -97,12 +93,8 @@ void AppDelegate::updateFiles() {
     
     
     if(pImageUpdate == NULL) {
-        unsigned long fsize;
-        unsigned char *data = CCFileUtils::sharedFileUtils()->getFileData("config.ini", "r", &fsize);
-        map<string, string> *nm = handleIni((char*)data, fsize); 
-        delete []data;
-		pImageUpdate = new ImageUpdate((*nm)["baseUrl"].c_str(), ((*nm)["imageVer"]).c_str(), (*nm)["localVer"].c_str());
-        delete nm;
+        CCUserDefault *def = CCUserDefault::sharedUserDefault();
+		pImageUpdate = new ImageUpdate(def->getStringForKey("baseUrl").c_str(), (def->getStringForKey("imageVer")).c_str(), def->getStringForKey("localVer").c_str());
     }
     suc = false;
     if(pImageUpdate->checkUpdate()) {
