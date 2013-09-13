@@ -46,7 +46,7 @@ function AllLevel:touchBegan(x, y)
     if child ~= nil then
         local sp = self.data[child:getTag()]
         print('touchBegan', sp, sp.setTexture)
-        setTexture(sp, 'images/red.png')
+        setTexture(sp, 'red.png')
         self.selected = sp
     end
 end
@@ -84,7 +84,7 @@ function AllLevel:touchEnded(x, y)
     setPos(self.flowTab, {curPos[1], self.INITOFF+self.HEIGHT*k})
 
     if self.selected ~= nil then
-        setTexture(self.selected, 'images/green.png')
+        setTexture(self.selected, 'green.png')
         self.selected = nil
     end
 end
@@ -93,7 +93,7 @@ function AllLevel:initTabs()
     self.tabArray = {}
     for i=1, self.TabNum, 1 do 
         local t = setContentSize(setAnchor(setPos(addNode(self.flowTab), {0, -(i-1)*self.HEIGHT}), {0, 0}), {400, 60})
-        local sp = setAnchor(addSprite(t, "images/green.png"), {0, 0})
+        local sp = setAnchor(addSprite(t, "green.png"), {0, 0})
         --table.insert(self.tabArray, {sp, i-1})
         t:setTag(i)
         self.data[i] = sp
