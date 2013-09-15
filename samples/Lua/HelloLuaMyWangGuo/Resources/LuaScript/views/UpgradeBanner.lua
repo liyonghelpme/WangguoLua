@@ -18,7 +18,7 @@ function UpgradeBanner:ctor(w, col, cb, delegate)
     local nbSize ={math.max(wSize.width+10, bSize.width), bSize.height}  
     setSize(sb, nbSize)
     
-    runAction(self.bg, sequence(delaytime(2), fadeout(1), callfunc(self, self.removeNow)))
+    self.bg:runAction(sequence({delaytime(2), fadeout(1), callfunc(self, self.removeNow)}))
 end
 function UpgradeBanner:removeNow()
     removeSelf(self.bg)
@@ -30,7 +30,7 @@ function UpgradeBanner:setMoveAni(X, Y)
     if self.moveAni ~= nil then
         self.bg:stopAction(self.moveAni)
     end
-    self.moveAni = expout(moveto(getParam("bannerMoveTime"), X, Y))
-    runAction(self.bg, self.moveAni) 
+    self.moveAni = expout(moveto(getParam("bannerMoveTime")/1000, X, Y))
+    self.bg:runAction(self.moveAni) 
 end
 

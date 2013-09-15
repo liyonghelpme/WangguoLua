@@ -1,6 +1,7 @@
 require "views.CastlePage"
 require "views.MenuLayer"
 require "views.BuildMenu"
+require "views.DialogController"
 
 CastleScene = class()
 --CastleScene 和loading 页面
@@ -10,6 +11,8 @@ function CastleScene:ctor()
     self.mc = CastlePage.new(self)
     self.bg:addChild(self.mc.bg)
     self.bg:addChild(self.ml.bg)
+    self.dialogController = DialogController.new(self)
+    self.bg:addChild(self.dialogController.bg)
 
     registerEnterOrExit(self)
 end

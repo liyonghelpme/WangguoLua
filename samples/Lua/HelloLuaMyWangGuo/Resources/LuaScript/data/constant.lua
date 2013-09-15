@@ -195,3 +195,10 @@ buildFunc = dict({
 {RING_FIGHTING, {{}, {}}},
 {CAMP, {{"photo"}, {"call"}}},
 })
+
+
+BUY_RES = dict({
+    {"silver", "buySilver"},
+    {"crystal", "buyCrystal"},
+    {"gold", "buyGold"},
+})

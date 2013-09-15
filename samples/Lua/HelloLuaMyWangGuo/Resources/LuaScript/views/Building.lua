@@ -311,3 +311,8 @@ function Building:getStartTime()
 end
 function Building:getName()
 end
+
+function beginPlant(cost, id)
+    global.user:doCost(cost)
+    self.funcBuild:beginPlant(id)
+end

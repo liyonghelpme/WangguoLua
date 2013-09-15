@@ -736,7 +736,7 @@ function colorWordsNode(s, si, nc, sc)
         if string.find(over[i], "%[") ~= nil then
             local p = split(over[i], "%[")
             if #p[1] > 0 then
-                local l = setPos(setColor(CCLabel:create(p[1], "", si), nc), {curX, 0})
+                local l = setPos(setColor(CCLabelTTF:create(p[1], "", si), nc), {curX, 0})
                 n:addChild(l)
                 local lSize = l:getContentSize()
                 curX = curX+lSize.width
@@ -744,7 +744,7 @@ function colorWordsNode(s, si, nc, sc)
             end
 
             if #p[2] > 0 then
-                local l = setPos(setColor(CCLabel:create(p[2], "", si), sc), {curX, 0})
+                local l = setPos(setColor(CCLabelTTF:create(p[2], "", si), sc), {curX, 0})
                 n:addChild(l)
                 local lSize = l:getContentSize()
                 curX = curX+lSize.width
@@ -752,7 +752,8 @@ function colorWordsNode(s, si, nc, sc)
             end
         else
             if #over[i] > 0 then
-                local l = setPos(setColor(CCLabel:create(over[i], "", si), nc), {curX, 0})
+                local l = setPos(setColor(CCLabelTTF:create(over[i], "", si), nc), {curX, 0})
+                setAnchor(l, {0, 0})
                 n:addChild(l)
                 local lSize = l:getContentSize()
                 curX = curX+lSize.width
@@ -877,4 +878,11 @@ function getLen(t)
         count = count+1
     end
     return count
+end
+function fixColor(c)
+    temp = {}
+    for k, v in ipairs(c) do
+        temp[k] = v*255/100
+    end
+    return temp
 end

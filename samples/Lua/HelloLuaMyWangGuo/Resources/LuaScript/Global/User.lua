@@ -10,7 +10,7 @@ function User:ctor()
     self.resource = {}
     --id ----> buildingData
     self.buildings = {
-        --[1]={id=0, px=1000, py=300, state=0, dir=0, objectId=0},
+        [1]={id=0, px=1000, py=300, state=1, dir=0, objectId=0},
     }
     self.soldiers = {}
     self.drugs = {}
@@ -118,10 +118,10 @@ end
 function User:checkCost(cost)
     local buyable = dict({{"ok", 1}})
     for k, v in pairs(cost) do
-        local cur = self.resource[k]
+        local cur = self:getValue(k)
         if cur < v then
             buyable['ok'] = 0
-            buyable[key] = v-cur
+            buyable[k] = v-cur
         end
     end
     return buyable
