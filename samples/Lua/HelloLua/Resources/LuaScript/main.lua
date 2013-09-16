@@ -24,8 +24,16 @@ local function main()
     require "MyDia.AllUser"
     require "MyDia.AllFriend"
     require 'MyDia.Formation'
+    require "Battle.BattleGround"
     
-    global.director:runWithScene(mainScene())
+    local ground = BattleGround.new()
+    ground:initTest()
+    ground:prepareBattle()
+    local scene = {bg=CCScene:create()}
+    scene.bg:addChild(ground:initView())
+    
+    CCDirector:sharedDirector():getScheduler():setTimeScale(2)
+    global.director:runWithScene(scene)
 end
 
 xpcall(main, __G__TRACKBACK__)
