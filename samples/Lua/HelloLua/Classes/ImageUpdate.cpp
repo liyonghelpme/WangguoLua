@@ -15,8 +15,10 @@ ImageUpdate::ImageUpdate(const char *serverUrl, const char *versionUrl, const ch
     
     //设定图片路径 优先使用缓存中图片
     //再使用images 文件夹中的图片
-    CCFileUtils::sharedFileUtils()->addSearchPath(_storagePath.c_str());
-    CCFileUtils::sharedFileUtils()->addSearchPath("images");
+    
+    //AppDelegate 里面处理 路径问题
+    //CCFileUtils::sharedFileUtils()->addSearchPath(_storagePath.c_str());
+    //CCFileUtils::sharedFileUtils()->addSearchPath("images");
 
     
     //vector<string> sp = CCFileUtils::sharedFileUtils()->getSearchPaths();

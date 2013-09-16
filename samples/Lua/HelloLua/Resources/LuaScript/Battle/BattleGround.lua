@@ -91,12 +91,12 @@ function BattleGround:initView()
     local screenSize = CCDirector:sharedDirector():getVisibleSize()
     if not self.view then
         self.sceneId=1
-        self.view = CCSprite:create("battleImages/background1.png")
+        self.view = CCSprite:create("background1.png")
         self.view:setScale(screenSize.width/1024)
         self.view:setAnchorPoint(CCPointMake(0.5, 0))
         self.view:setPosition(screenSize.width/2, 0)
     else
-        self.view:setTexture(CCTextureCache:sharedTextureCache():addImage(string.format("battleImages/background%d.png", self.sceneId)))
+        self.view:setTexture(CCTextureCache:sharedTextureCache():addImage(string.format("background%d.png", self.sceneId)))
     end
     for i=1, ROW_MAX*COL_MAX do
         if self.left[i] then

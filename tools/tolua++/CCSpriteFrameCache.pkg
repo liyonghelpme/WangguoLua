@@ -6,8 +6,6 @@ class CCSpriteFrameCache : public CCObject
     void addSpriteFramesWithFile(const char* plist, const char* textureFileName);
     void addSpriteFramesWithFile(const char *pszPlist, CCTexture2D *pobTexture);
     void addSpriteFrame(CCSpriteFrame *pobFrame, const char *pszFrameName);
-    void addSpriteFramesWithDictionary(CCDictionary* pobDictionary, CCTexture2D *pobTexture);
-
 
     void removeSpriteFrames(void);
     void removeUnusedSpriteFrames(void);

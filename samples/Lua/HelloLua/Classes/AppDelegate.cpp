@@ -62,10 +62,14 @@ bool AppDelegate::applicationDidFinishLaunching()
     }
     delete nm;
 
+    //搜索文件路径
+    CCFileUtils::sharedFileUtils()->addSearchPath(CCFileUtils::sharedFileUtils()->getWritablePath().c_str());
+    CCFileUtils::sharedFileUtils()->addSearchPath("LuaScript");
+    CCFileUtils::sharedFileUtils()->addSearchPath("images");
+    
     updateFiles();
 
-    //搜索文件路径
-    CCFileUtils::sharedFileUtils()->addSearchPath("LuaScript");
+    
     std::string path = CCFileUtils::sharedFileUtils()->fullPathForFilename("main.lua");
     pEngine->executeScriptFile(path.c_str());
     return true;

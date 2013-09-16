@@ -388,12 +388,12 @@ end
 function BattleRole:initView(bg, isLeft)
     self.isLeft = isLeft
     if not self.view then
-        self.view = CCSprite:create("battleImages/kulou_dj_00.png")
+        self.view = CCSprite:create("kulou_dj_00.png")
         bg:addChild(self.view)
         
         local animation = CCAnimation:create()
         for i = 0, 27, 3 do
-    	    animation:addSpriteFrameWithFileName(string.format("battleImages/kulou_dj_%02d.png", i))
+    	    animation:addSpriteFrameWithFileName(string.format("kulou_dj_%02d.png", i))
     	end
 	    animation:setDelayPerUnit(0.1)
 	    animation:setRestoreOriginalFrame(true)
@@ -402,7 +402,7 @@ function BattleRole:initView(bg, isLeft)
 	    
         animation = CCAnimation:create()
         for i = 0, 19 do
-    	    animation:addSpriteFrameWithFileName(string.format("battleImages/kulou_gj_%02d.png", i))
+    	    animation:addSpriteFrameWithFileName(string.format("kulou_gj_%02d.png", i))
     	end
 	    animation:setDelayPerUnit(0.033)
 	    animation:setRestoreOriginalFrame(true)
@@ -411,7 +411,7 @@ function BattleRole:initView(bg, isLeft)
 	    
         animation = CCAnimation:create()
         for i = 0, 12, 2 do
-    	    animation:addSpriteFrameWithFileName(string.format("battleImages/kulou_sj_%02d.png", i))
+    	    animation:addSpriteFrameWithFileName(string.format("kulou_sj_%02d.png", i))
     	end
 	    animation:setDelayPerUnit(0.066)
 	    animation:setRestoreOriginalFrame(true)
@@ -420,7 +420,7 @@ function BattleRole:initView(bg, isLeft)
 	    
         animation = CCAnimation:create()
         for i = 0, 27, 3 do
-    	    animation:addSpriteFrameWithFileName(string.format("battleImages/kulou_zou_%02d.png", i))
+    	    animation:addSpriteFrameWithFileName(string.format("kulou_zou_%02d.png", i))
     	end
 	    animation:setDelayPerUnit(0.1)
 	    animation:setRestoreOriginalFrame(true)
@@ -444,12 +444,12 @@ function BattleRole:initView(bg, isLeft)
         self.view:setPosition(1024-x,y)
     end
     self.runDjAnimation(self.view)
-    local back = CCSprite:create("battleImages/loadingProcessBack.png")
+    local back = CCSprite:create("loadingProcessBack.png")
     back:setAnchorPoint(CCPointMake(0.5, 0.5))
     local size = self.view:getContentSize()
     back:setPosition(size.width*self.view:getAnchorPoint().x, 178)
     back:setScale(0.25)
-    local filler = CCSprite:create("battleImages/loadingProcessFiller.png")
+    local filler = CCSprite:create("loadingProcessFiller.png")
     back:addChild(filler)
     filler:setAnchorPoint(CCPointMake(0,0))
     filler:setPosition(2,2)
@@ -457,13 +457,13 @@ function BattleRole:initView(bg, isLeft)
     self.processSize = {width=size.width, height=size.height}
     self.process = filler
     self.view:addChild(back)
-    back = CCSprite:create("battleImages/loadingProcessBack.png")
+    back = CCSprite:create("loadingProcessBack.png")
     back:setAnchorPoint(CCPointMake(0.5, 0.5))
     local size = self.view:getContentSize()
     back:setPosition(size.width*self.view:getAnchorPoint().x, 170)
     back:setScaleX(0.25)
     back:setScaleY(0.4)
-    local filler = CCSprite:create("battleImages/loadingProcessFiller.png")
+    local filler = CCSprite:create("loadingProcessFiller.png")
     filler:setColor(ccc3(255,127,0))
     back:addChild(filler)
     filler:setAnchorPoint(CCPointMake(0,0))
