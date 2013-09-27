@@ -715,7 +715,7 @@ function getParam(k)
     return getDefault(GameParam, k, 0)
 end
 
-
+--string size normalColor Special Color
 function colorWordsNode(s, si, nc, sc)
     local n = CCNode:create()
     local over = split(s, "%]")
@@ -726,7 +726,7 @@ function colorWordsNode(s, si, nc, sc)
         if string.find(over[i], "%[") ~= nil then
             local p = split(over[i], "%[")
             if #p[1] > 0 then
-                local l = setPos(setColor(CCLabel:create(p[1], "", si), nc), {curX, 0})
+                local l = setPos(setColor(CCLabelTTF:create(p[1], "", si), nc), {curX, 0})
                 n:addChild(l)
                 local lSize = l:getContentSize()
                 curX = curX+lSize.width
@@ -734,7 +734,7 @@ function colorWordsNode(s, si, nc, sc)
             end
 
             if #p[2] > 0 then
-                local l = setPos(setColor(CCLabel:create(p[2], "", si), sc), {curX, 0})
+                local l = setPos(setColor(CCLabelTTF:create(p[2], "", si), sc), {curX, 0})
                 n:addChild(l)
                 local lSize = l:getContentSize()
                 curX = curX+lSize.width
@@ -742,7 +742,7 @@ function colorWordsNode(s, si, nc, sc)
             end
         else
             if #over[i] > 0 then
-                local l = setPos(setColor(CCLabel:create(over[i], "", si), nc), {curX, 0})
+                local l = setPos(setColor(CCLabelTTF:create(over[i], "", si), nc), {curX, 0})
                 n:addChild(l)
                 local lSize = l:getContentSize()
                 curX = curX+lSize.width
@@ -830,4 +830,7 @@ function adjustZord(bg, z)
     par:addChild(bg, z)
     bg:release()
     return bg
+end
+function getVs()
+    return CCDirector:sharedDirector():getVisibleSize()
 end

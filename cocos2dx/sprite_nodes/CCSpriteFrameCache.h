@@ -64,7 +64,7 @@ public:
     bool init(void);
     ~CCSpriteFrameCache(void);
 
-private:
+public:
     /*Adds multiple Sprite Frames with a dictionary. The texture will be associated with the created sprite frames.
      */
     void addSpriteFramesWithDictionary(CCDictionary* pobDictionary, CCTexture2D *pobTexture);

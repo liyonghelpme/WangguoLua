@@ -7,7 +7,7 @@ function MainDialog:ctor()
     self.HEIGHT = 70
     self.BACK_HEI = global.director.disSize[2]
     self.INITOFF = self.BACK_HEI-80
-    self.content = {'PVE', 'PVP', '英雄'}
+    self.content = {'PVE', 'PVP', '英雄', '任务', '好友', '帮会'}
     self.TabNum = #self.content
     self.data = {}
 
@@ -21,9 +21,35 @@ function MainDialog:ctor()
     self.bg:addChild(self.touch.bg)
     
     global.httpController:addRequest('getAllHeroData', dict(), self.getAllHeroData, nil, self)
+    global.httpController:addRequest('getUserData', dict(), self.getUserData, nil, self)
 
     setPos(addSprite(self.bg, "green2.png"), {100, 100})
 end
+function MainDialog:initLeftTop()
+    local vs = getVs() 
+    local lt = addNode(self.bg)
+    setPos(lt, {vs.width-236, vs.height-33})
+    local temp = setPos(setAnchor(addLabel(lt, getStr("level"), "", 18), {0, 0.5}), {0, 0})
+    self.level = temp
+    temp = setPos(setAnchor(addLabel(lt, getStr("exp"), "", 18), {0, 0.5}), {0, 30})
+    self.exp = temp
+    temp = setPos(setAnchor(addLabel(lt, getStr("name"), "", 18), {0, 0.5}), {0, 60})
+    self.name = temp
+    temp = setPos(setAnchor(addLabel(lt, getStr("strength"), "", 18), {0, 0.5}), {0, 90})
+    self.strength = temp
+    temp = setPos(setAnchor(addLabel(lt, getStr("crystal"), "", 18), {0, 0.5}), {0, 120})
+    self.crystal = temp
+    temp = setPos(setAnchor(addLabel(lt, getStr("gold"), "", 18), {0, 0.5}), {0, 60})
+    self.gold = temp
+end
+function MainDialog:updateValue()
+    self.level:setString("等级"..self.userData.)
+end
+function MainDialog:getUserData(rep, param)
+    Logic.userData = rep
+    self:updateValue()
+end
+
 function MainDialog:getAllHeroData(rep, param)
     self.allHeroData = {}
     for k, v in ipairs(rep['heroData']) do

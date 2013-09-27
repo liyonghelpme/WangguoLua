@@ -148,3 +148,17 @@ function ui.newTouchLayer(params)
     registerTouch(obj)
     return obj
 end
+
+
+function ui.adjustMid(sp)
+    local vs = global.director.disSize
+    sp:setPosition(ccp(vs[1]/2, vs[2]/2))
+    sp:setAnchorPoint(ccp(0.5, 0.5))
+    return sp
+end
+
+function ui.createScene(view)
+    local scene = {bg=CCScene:create()}
+    scene.bg:addChild(view.bg)
+    return scene
+end
