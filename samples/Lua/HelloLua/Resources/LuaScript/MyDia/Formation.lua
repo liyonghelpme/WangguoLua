@@ -40,7 +40,7 @@ function Formation:getFormation(rep, param)
                 break
             end
         end
-        local name = self.mainDialog.allHeroData[hdata['kind']]['name']
+        local name = Logic.allHeroData[hdata['kind']]['name']
         table.insert(self.content, name..' '..hdata['job']..'转'..' '..hdata['level']..'级')
     end
     

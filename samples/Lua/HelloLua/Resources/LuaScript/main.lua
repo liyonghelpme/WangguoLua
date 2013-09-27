@@ -21,6 +21,7 @@ local function main()
     require "logic.Logic"
     require "values.Value"
     require "MyDia.MainDialog"
+    require "MyDia.AllFight"
     require "MyDia.AllHeroes"
     require "MyDia.AllLevel"
     require "MyDia.AllUser"

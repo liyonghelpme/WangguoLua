@@ -460,7 +460,17 @@ function setVisible(s, v)
 end
 
 function getStr(key, rep)
-    return key
+    local s = Strings[key]
+    if s == nil then
+        return ""
+    end
+    if type(s) == "table" then
+        s = s[LANGUAGE] 
+    end
+    if type(rep) == "table" then
+        s = replaceStr(s, rep)
+    end
+    return s
 end
 
 --可以参考nozomi MyWorld 网格 笛卡尔坐标 仿射坐标的转化

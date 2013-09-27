@@ -12,13 +12,5 @@ require "Global.director"
 require "Global.User"
 require "model.HttpController"
 require "Global.GlobalController"
-
 require "views.ShadowWords"
-
-require "views.MoveMap"
-require "busiViews.BuildLayer"
 require "views.StandardTouchHandler"
-require "views.Store"
-require "views.ChildMenuLayer"
-require "views.CastleScene"
-require "views.Loading"

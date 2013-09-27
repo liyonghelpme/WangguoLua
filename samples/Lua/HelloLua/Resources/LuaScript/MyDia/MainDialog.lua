@@ -19,11 +19,12 @@ function MainDialog:ctor()
     self.touch = ui.newTouchLayer({size={self.WIDTH, self.BACK_HEI}, delegate=self, touchBegan=self.touchBegan, touchMoved=self.touchMoved, touchEnded=self.touchEnded})
 
     self.bg:addChild(self.touch.bg)
+    self:initLeftTop()
     
     global.httpController:addRequest('getAllHeroData', dict(), self.getAllHeroData, nil, self)
-    global.httpController:addRequest('getUserData', dict(), self.getUserData, nil, self)
+    global.httpController:addRequest('getUserData', dict({{"uid", 1}}), self.getUserData, nil, self)
 
-    setPos(addSprite(self.bg, "green2.png"), {100, 100})
+    --setPos(addSprite(self.bg, "green2.png"), {100, 100})
 end
 function MainDialog:initLeftTop()
     local vs = getVs() 
@@ -31,29 +32,35 @@ function MainDialog:initLeftTop()
     setPos(lt, {vs.width-236, vs.height-33})
     local temp = setPos(setAnchor(addLabel(lt, getStr("level"), "", 18), {0, 0.5}), {0, 0})
     self.level = temp
-    temp = setPos(setAnchor(addLabel(lt, getStr("exp"), "", 18), {0, 0.5}), {0, 30})
+    temp = setPos(setAnchor(addLabel(lt, getStr("exp"), "", 18), {0, 0.5}), {0, -30})
     self.exp = temp
-    temp = setPos(setAnchor(addLabel(lt, getStr("name"), "", 18), {0, 0.5}), {0, 60})
+    temp = setPos(setAnchor(addLabel(lt, getStr("name"), "", 18), {0, 0.5}), {0, -60})
     self.name = temp
-    temp = setPos(setAnchor(addLabel(lt, getStr("strength"), "", 18), {0, 0.5}), {0, 90})
+    temp = setPos(setAnchor(addLabel(lt, getStr("strength"), "", 18), {0, 0.5}), {0, -90})
     self.strength = temp
-    temp = setPos(setAnchor(addLabel(lt, getStr("crystal"), "", 18), {0, 0.5}), {0, 120})
+    temp = setPos(setAnchor(addLabel(lt, getStr("crystal"), "", 18), {0, 0.5}), {0, -120})
     self.crystal = temp
-    temp = setPos(setAnchor(addLabel(lt, getStr("gold"), "", 18), {0, 0.5}), {0, 60})
+    temp = setPos(setAnchor(addLabel(lt, getStr("gold"), "", 18), {0, 0.5}), {0, -150})
     self.gold = temp
 end
 function MainDialog:updateValue()
-    self.level:setString("等级"..self.userData.)
+    self.level:setString("等级:"..Logic.userData.level)
+    self.exp:setString("经验:"..Logic.userData.exp)
+    self.name:setString("用户名:"..Logic.userData.name)
+    self.strength:setString("体力值:"..Logic.userData.strength.."/"..getMaxStrength())
+    self.crystal:setString("宝石:"..Logic.userData.crystal)
+    self.gold:setString("金币:"..Logic.userData.gold)
 end
 function MainDialog:getUserData(rep, param)
-    Logic.userData = rep
+    Logic.userData = rep.user
     self:updateValue()
 end
 
 function MainDialog:getAllHeroData(rep, param)
-    self.allHeroData = {}
+    --self.allHeroData = {}
+    Logic.allHeroData = {}
     for k, v in ipairs(rep['heroData']) do
-        self.allHeroData[v['id']] = v
+        Logic.allHeroData[v['id']] = v
     end
 end
 
