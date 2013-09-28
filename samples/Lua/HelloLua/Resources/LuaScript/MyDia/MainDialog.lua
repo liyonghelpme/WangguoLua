@@ -148,12 +148,18 @@ function mainScene()
     local scene = CCScene:create()
     --scene:addChild(MainDialog.new().bg)
     local obj = {}
+    obj.initYet = false
     function obj:enterScene()
-        global.director:pushView(MainDialog.new(), 1, 0, 1)
+        if not obj.initYet then
+            global.director:pushView(MainDialog.new(), 1, 0, 1)
+            obj.initYet = true
+        end
     end
     function obj:exitScene()
     end
     obj.bg = scene
+    obj.dialogController = DialogController.new()
+    obj.bg:addChild(obj.dialogController.bg)
     registerEnterOrExit(obj)
     return obj
 end

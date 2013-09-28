@@ -20,10 +20,20 @@ function AllFight:chooseHero(i, dataNum)
         local os = w:getString()
         w:setString(string.sub(os, 1, -7))
     else
-        Logic.heroes[i]['out'] = true
-        local w = self.data[dataNum][2]
-        local os = w:getString()
-        w:setString(os..'出战')
+        local count =0 
+        for k, v in ipairs(Logic.heroes) do
+            if v['out'] then
+                count = count+1
+            end
+        end
+        if count >= 5 then
+            showDialog("出战士兵不能超过5个")
+        else
+            Logic.heroes[i]['out'] = true
+            local w = self.data[dataNum][2]
+            local os = w:getString()
+            w:setString(os..'出战')
+        end
     end
     return false
 end
@@ -128,27 +138,6 @@ function AllFight:touchEnded(x, y)
             if ret then
                 return
             end
-            --[[
-            if i == #self.content-1 then
-                global.httpController:addRequest('getAllHero', dict(), self.getAllHero, nil, self)
-            elseif i == #self.content then
-                global.httpController:addRequest('setFormation', dict({{'uid',1}, {'formation', simple.encode(self:getOutSoldier())}}))
-                global.director:popView()
-                return
-            else
-                if self.heroes[i]['out'] then
-                    self.heroes[i]['out'] = false
-                    local w = self.data[i][2]
-                    local os = w:getString()
-                    w:setString(string.sub(os, 1, -7))
-                else
-                    self.heroes[i]['out'] = true
-                    local w = self.data[i][2]
-                    local os = w:getString()
-                    w:setString(os..'出战')
-                end
-            end
-            --]]
         end
     end
 

@@ -5,7 +5,6 @@ local simple = require "dkjson"
 AllHeroes = class()
 
 function AllHeroes:goBack()
-    --global.httpController:addRequest('setFormation', dict({{'uid',1}, {'formation', simple.encode(self:getOutSoldier())}}))
     global.director:popView()
     return true
 end
@@ -23,7 +22,7 @@ function AllHeroes:sell()
 end
 function AllHeroes:chooseHero(i, dataNum)
     print("chooseHero", i)
-    global.director:pushView(HeroInfo.new(Logic.heroes[i]), 1, 0)
+    global.director:pushView(HeroInfo.new(Logic.heroes[i]), 1, 0, 1)
     return false
 end
 

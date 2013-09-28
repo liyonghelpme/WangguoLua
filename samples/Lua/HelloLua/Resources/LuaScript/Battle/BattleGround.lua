@@ -202,6 +202,7 @@ function BattleGround:nextBattle()
         self.actionTime = 1
         self.changeLayer:runAction(CCFadeOut:create(1.5))
     end
+    self.changeLayer:setTouchEnabled(false)
     for i=1, ROW_MAX*COL_MAX do
         if self.left[i] and not self.left[i].dead then
             self.left[i]:runZou()
