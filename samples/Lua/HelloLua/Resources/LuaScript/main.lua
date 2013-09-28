@@ -27,7 +27,7 @@ local function main()
     require "MyDia.AllUser"
     require "MyDia.AllFriend"
     require 'MyDia.Formation'
-    --require "Battle.BattleGround"
+    require "Battle.BattleGround"
     --require "Mock.MainMap"
     
     --[[

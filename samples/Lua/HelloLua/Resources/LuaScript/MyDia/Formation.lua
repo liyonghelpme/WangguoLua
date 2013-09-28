@@ -7,6 +7,15 @@ function Formation:goBack()
 end
 function Formation:goFight(num, dataNum)
     global.httpController:addRequest('setFormation', dict({{'uid',1}, {'formation', simple.encode(Logic.formation)}}) )
+
+    local ground = BattleGround.new()
+    ground:initTest()
+    ground:prepareBattle()
+    local scene = {bg=CCScene:create()}
+    scene.bg:addChild(ground:initView())
+    
+    CCDirector:sharedDirector():getScheduler():setTimeScale(2)
+    global.director:pushScene(scene)
     return false 
 end
 function Formation:adjustHero()

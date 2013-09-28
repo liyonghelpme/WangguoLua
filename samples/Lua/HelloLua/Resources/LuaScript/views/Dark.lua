@@ -1,10 +1,17 @@
 Dark = class()
-function Dark:ctor(auto, gray)
+function Dark:ctor(auto, gray, bigDark)
     self.autoPop = auto
     self.bg = CCLayer:create()
     print("Dark ctor", auto, gray)
     if gray == 1 then
-        local sp = CCSprite:create("images/black.png")
+        local sp = CCSprite:create("black.png")
+        sp:setOpacity(255)
+        sp:setColor(ccc3(255, 255, 255))
+        setPos(sp, {global.director.disSize[1]/2, global.director.disSize[2]/2})
+        setSize(sp, global.director.disSize)
+        self.bg:addChild(sp)
+    elseif bigDark == 1 then
+        local sp = CCSprite:create("bigDark.png")
         sp:setOpacity(255)
         sp:setColor(ccc3(255, 255, 255))
         setPos(sp, {global.director.disSize[1]/2, global.director.disSize[2]/2})

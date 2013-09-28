@@ -25,12 +25,12 @@ function Director:pushPage(view, z)
 end
 
 --view 封装了 CCNode
-function Director:pushView(view, dark, autoPop, gray)
+function Director:pushView(view, dark, autoPop, gray, bigDark)
     print('pushView', dark, autoPop, gray)
     if dark == 1 then
         local temp = {}
         temp.bg = CCNode:create()
-        local d = Dark.new(autoPop, gray)
+        local d = Dark.new(autoPop, gray, bigDark)
         temp.bg:addChild(d.bg)
         temp.bg:addChild(view.bg)
         self.curScene.bg:addChild(temp.bg)

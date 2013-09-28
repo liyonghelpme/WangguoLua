@@ -4,7 +4,7 @@ function AllFriend:goBack()
     return true
 end
 function AllFriend:selHero(num, dataNum)
-    global.director:pushView(Formation.new(nil, Logic.allFriend[dataNum]['uid'], self.enemyUser), 1, 0)
+    global.director:pushView(Formation.new(nil, Logic.allFriend[dataNum]['uid'], self.enemyUser), 1, 0, 1)
     return false
 end
 function AllFriend:ctor(mainDialog, enemyUser)
@@ -98,14 +98,6 @@ function AllFriend:touchEnded(x, y)
             if ret then
                 return
             end
-            --[[
-            if i == #self.content then
-                global.director:popView()
-                return
-            else
-                global.director:pushView(Formation.new(self.mainDialog, self.allFriend[i]['uid'], self.enemyUser), 1, 0)
-            end
-            --]]
         end
     end
 
