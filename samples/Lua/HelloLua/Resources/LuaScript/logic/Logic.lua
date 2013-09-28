@@ -3,6 +3,7 @@ Logic.allHeroData = nil
 Logic.heroes = nil
 Logic.formation = nil
 Logic.level = nil
+Logic.maxHid = nil
 function getMaxStrength()
     return 120
 end
@@ -38,4 +39,8 @@ function getTransferGold(hid)
 end
 function getFastGold(hid)
     return 100
+end
+function getMaxHid()
+    Logic.maxHid = Logic.maxHid+1
+    return Logic.maxHid
 end

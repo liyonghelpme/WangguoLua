@@ -1,40 +1,41 @@
-require "MyDia.Store"
-require "MyDia.Sell"
-require "MyDia.HeroInfo"
 local simple = require "dkjson"
-AllHeroes = class()
+AllFight = class()
 
-function AllHeroes:goBack()
-    --global.httpController:addRequest('setFormation', dict({{'uid',1}, {'formation', simple.encode(self:getOutSoldier())}}))
+function AllFight:goBack()
+    Logic.formation = self:getOutSoldier()
+    global.httpController:addRequest('setFormation', dict({{'uid',1}, {'formation', simple.encode(Logic.formation)}}))
+    global.director:popView()
+    Event:sendMsg(EVENT_TYPE.UPDATE_HERO)
+    return true
+end
+function AllFight:cancel()
     global.director:popView()
     return true
 end
-function AllHeroes:goFight()
-    global.director:pushView(AllFight.new(), 1, 0)
-    return false
-end
-function AllHeroes:call()
-    global.director:pushView(Store.new(), 1, 0)
-    return false
-end
-function AllHeroes:sell()
-    global.director:pushView(Sell.new(), 1, 0)
-    return false
-end
-function AllHeroes:chooseHero(i, dataNum)
+function AllFight:chooseHero(i, dataNum)
     print("chooseHero", i)
-    global.director:pushView(HeroInfo.new(Logic.heroes[i]), 1, 0)
+    if Logic.heroes[i]['out'] then
+        Logic.heroes[i]['out'] = false
+        local w = self.data[dataNum][2]
+        local os = w:getString()
+        w:setString(string.sub(os, 1, -7))
+    else
+        Logic.heroes[i]['out'] = true
+        local w = self.data[dataNum][2]
+        local os = w:getString()
+        w:setString(os..'出战')
+    end
     return false
 end
 
-function AllHeroes:ctor(mainDialog)
+function AllFight:ctor(mainDialog)
     self.INIT_X = 0
     self.INIT_Y = 0
     self.WIDTH = 457
     self.HEIGHT = 70
     self.BACK_HEI = global.director.disSize[2]
     self.INITOFF = self.BACK_HEI-80
-    self.content = {{'返回', self.goBack}, {'出战', self.goFight}, {'招募', self.call}, {'卖出', self.sell}, {'骑士1转1级', self.chooseHero}, {'牧师3转2级', self.chooseHero}, {'牧师3转3级', self.chooseHero}}
+    self.content = {{'确定', self.goBack}, {'取消', self.cancel}}
     self.TabNum = #self.content
     self.data = {}
     self.mainDialog = mainDialog
@@ -47,37 +48,20 @@ function AllHeroes:ctor(mainDialog)
     self.touch = ui.newTouchLayer({size={self.WIDTH, self.BACK_HEI}, delegate=self, touchBegan=self.touchBegan, touchMoved=self.touchMoved, touchEnded=self.touchEnded})
 
     self.bg:addChild(self.touch.bg)
-    registerEnterOrExit(self)
 
-
-    global.httpController:addRequest('getAllHero', dict({{"uid", 1}}), self.getAllHero, nil, self)
+    --global.httpController:addRequest('getAllHero', dict(), self.getAllHero, nil, self)
+    self:getAllHero()
 end
-function AllHeroes:receiveMsg(name, msg)
-    if name == EVENT_TYPE.UPDATE_HERO then
-        self:realUpdateHero()
-    end
-end
---refresh heroState
-function AllHeroes:enterScene()
-    Event:registerEvent(EVENT_TYPE.UPDATE_HERO, self)
-end
-function AllHeroes:exitScene()
-    Event:unregisterEvent(EVENT_TYPE.UPDATE_HERO, self)
-end
-function AllHeroes:realUpdateHero()
-    if Logic.formation == nil then
-        return
-    end
+function AllFight:getAllHero()
+    --self.formation = rep['formation']
     self.temp = {}
     for k, v in ipairs(Logic.formation) do
         self.temp[v] = true
     end
     self.content = {}
     local count = 0
-    table.insert(self.content, {'返回', self.goBack})
-    table.insert(self.content, {'出战', self.goFight})
-    table.insert(self.content, {'招募', self.call})
-    table.insert(self.content, {'卖出', self.sell})
+    table.insert(self.content, {'确定', self.goBack})
+    table.insert(self.content, {'取消', self.cancel})
     count = #self.content
     for k, v in ipairs(Logic.heroes) do
         count = count+1
@@ -96,20 +80,9 @@ function AllHeroes:realUpdateHero()
     removeSelf(self.flowTab)
     self.flowTab = setPos(addNode(self.bg), {20, self.INITOFF})
     self:initTabs()
+
 end
-function AllHeroes:getAllHero(rep, param)
-    Logic.heroes = rep['heroes']
-    local maxHid = 0
-    for k, v in ipairs(Logic.heroes) do
-        if v['hid'] > maxHid then
-            maxHid = v['hid']
-        end
-    end
-    Logic.maxHid = maxHid
-    Logic.formation = rep['formation']
-    self:realUpdateHero()
-end
-function AllHeroes:touchBegan(x, y)
+function AllFight:touchBegan(x, y)
     self.accMove = 0
     self.lastPoints = {x, y}
 
@@ -122,19 +95,19 @@ function AllHeroes:touchBegan(x, y)
     end
 end
 
-function AllHeroes:moveBack(dify)
+function AllFight:moveBack(dify)
     local oldPos = getPos(self.flowTab)
     setPos(self.flowTab, {oldPos[1], oldPos[2]+dify})
     self.accMove = self.accMove+math.abs(dify)
 end
-function AllHeroes:touchMoved(x, y)
+function AllFight:touchMoved(x, y)
     local oldPos = self.lastPoints
     self.lastPoints = {x, y}
     local dify = self.lastPoints[2]-oldPos[2]
     self:moveBack(dify)
 end
-
-function AllHeroes:getOutSoldier()
+--最终还是根据formation 来确定哪些士兵出战哪些没有
+function AllFight:getOutSoldier()
     local temp = {}
     for k, v in ipairs(Logic.heroes) do
         if v['out'] then
@@ -143,7 +116,7 @@ function AllHeroes:getOutSoldier()
     end
     return temp
 end
-function AllHeroes:touchEnded(x, y)
+function AllFight:touchEnded(x, y)
     local newPos = {x, y}
     if self.accMove < 10 then
         local child = checkInChild(self.flowTab, newPos)
@@ -155,6 +128,27 @@ function AllHeroes:touchEnded(x, y)
             if ret then
                 return
             end
+            --[[
+            if i == #self.content-1 then
+                global.httpController:addRequest('getAllHero', dict(), self.getAllHero, nil, self)
+            elseif i == #self.content then
+                global.httpController:addRequest('setFormation', dict({{'uid',1}, {'formation', simple.encode(self:getOutSoldier())}}))
+                global.director:popView()
+                return
+            else
+                if self.heroes[i]['out'] then
+                    self.heroes[i]['out'] = false
+                    local w = self.data[i][2]
+                    local os = w:getString()
+                    w:setString(string.sub(os, 1, -7))
+                else
+                    self.heroes[i]['out'] = true
+                    local w = self.data[i][2]
+                    local os = w:getString()
+                    w:setString(os..'出战')
+                end
+            end
+            --]]
         end
     end
 
@@ -170,7 +164,7 @@ function AllHeroes:touchEnded(x, y)
     end
 end
 
-function AllHeroes:initTabs()
+function AllFight:initTabs()
     self.tabArray = {}
     for i=1, self.TabNum, 1 do 
         local t = setContentSize(setAnchor(setPos(addNode(self.flowTab), {0, -(i-1)*self.HEIGHT}), {0, 0}), {400, 60})
@@ -181,11 +175,4 @@ function AllHeroes:initTabs()
         local w = setColor(setPos(addLabel(sp, self.content[i][1], "", 33), {sz.width/2, sz.height/2}), {0, 0, 0})
         self.data[i] = {sp, w}
     end
-end
-function heroScene()
-    local scene = CCScene:create()
-    scene:addChild(AllHeroes.new().bg)
-    local obj = {}
-    obj.bg = scene
-    return obj
 end

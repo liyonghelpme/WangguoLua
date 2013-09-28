@@ -132,8 +132,14 @@ function ui.newTouchLayer(params)
     lay:setContentSize(CCSizeMake(params.size[1], params.size[2]))
     local sz = lay:getContentSize()
     function obj:touchBegan(x, y)
-        local xy = lay:convertToNodeSpace(ccp(x, y))
-        if checkIn(xy.x, xy.y, sz) then
+        local ret 
+        if params.checkIn ~= nil then
+            ret = params.checkIn(params.delegate, x, y)
+        else
+            local xy = lay:convertToNodeSpace(ccp(x, y))
+            ret = checkIn(xy.x, xy.y, sz)
+        end
+        if ret then
             params.touchBegan(params.delegate, x, y)
             return true
         end

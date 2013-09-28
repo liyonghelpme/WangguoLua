@@ -844,3 +844,6 @@ end
 function getVs()
     return CCDirector:sharedDirector():getVisibleSize()
 end
+function addReq(req, postData, handler, param, delegate)
+    global.httpController:addRequest(req, postData, handler, param, delegate)
+end
