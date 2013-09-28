@@ -1,5 +1,24 @@
+require "MyDia.SmallDialog"
 local simple = require "dkjson"
 MainDialog = class()
+function MainDialog:onPVE()
+    global.director:pushView(AllLevel.new(self), 1, 0, 1)
+end
+function MainDialog:onPVP()
+    global.director:pushView(AllUser.new(self), 1, 0, 1)
+end
+function MainDialog:onHero()
+    global.director:pushView(AllHeroes.new(self), 1, 0, 1)
+end
+function MainDialog:onFriend()
+end
+function MainDialog:onTask()
+end
+function MainDialog:onLeague()
+end
+function MainDialog:onTest()
+    global.director:pushView(SmallDialog.new(self), 1, 0)
+end
 function MainDialog:ctor()
     self.INIT_X = 0
     self.INIT_Y = 0
@@ -7,7 +26,7 @@ function MainDialog:ctor()
     self.HEIGHT = 70
     self.BACK_HEI = global.director.disSize[2]
     self.INITOFF = self.BACK_HEI-80
-    self.content = {'PVE', 'PVP', '英雄', '任务', '好友', '帮会'}
+    self.content = {{'PVE', self.onPVE}, {'PVP', self.onPVP}, {'英雄', self.onHero}, {'任务', self.onTask}, {'好友', self.onFriend}, {'帮会', self.onLeague}, {'test', self.onTest}}
     self.TabNum = #self.content
     self.data = {}
 
@@ -16,7 +35,7 @@ function MainDialog:ctor()
 
     self:initTabs()
     
-    self.touch = ui.newTouchLayer({size={self.WIDTH, self.BACK_HEI}, delegate=self, touchBegan=self.touchBegan, touchMoved=self.touchMoved, touchEnded=self.touchEnded})
+    self.touch = ui.newTouchLayer({size={800, self.BACK_HEI}, delegate=self, touchBegan=self.touchBegan, touchMoved=self.touchMoved, touchEnded=self.touchEnded})
 
     self.bg:addChild(self.touch.bg)
     self:initLeftTop()
@@ -93,13 +112,9 @@ function MainDialog:touchEnded(x, y)
         if child ~= nil then
             local i = child:getTag()
             print(i)
-            if i == 1 then
-                global.director:pushView(AllLevel.new(self), 1, 0)
-            elseif i == 2 then
-                global.director:pushView(AllUser.new(self), 1, 0)
-            elseif i == 3 then
-                --global.director:replaceScene(heroScene())
-                global.director:pushView(AllHeroes.new(self), 1, 0)
+            local ret = self.content[i][2](self, self.content[i][3], self.content[i][4])
+            if ret then
+                return
             end
         end
     end
@@ -126,13 +141,19 @@ function MainDialog:initTabs()
         self.data[i] = sp
         --print('gettag', sp:getTag(), t:getChildByTag(2))
         local sz = sp:getContentSize()
-        local w = setColor(setPos(addLabel(sp, self.content[i], "", 33), {sz.width/2, sz.height/2}), {0, 0, 0})
+        local w = setColor(setPos(addLabel(sp, self.content[i][1], "", 33), {sz.width/2, sz.height/2}), {0, 0, 0})
     end
 end
 function mainScene()
     local scene = CCScene:create()
-    scene:addChild(MainDialog.new().bg)
+    --scene:addChild(MainDialog.new().bg)
     local obj = {}
+    function obj:enterScene()
+        global.director:pushView(MainDialog.new(), 1, 0, 1)
+    end
+    function obj:exitScene()
+    end
     obj.bg = scene
+    registerEnterOrExit(obj)
     return obj
 end

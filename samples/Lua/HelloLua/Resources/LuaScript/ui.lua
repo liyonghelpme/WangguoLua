@@ -88,7 +88,10 @@ function ui.newTTFLabel(params)
 
     return label
 end
-
+--[[
+image 
+callback
+--]]
 function ui.newButton(params)
     local obj = {}
     local lay = CCLayer:create()
@@ -97,8 +100,8 @@ function ui.newButton(params)
     obj.bg = lay
     local sz = sp:getContentSize()
     lay:setContentSize(sz)
-    lay:setAnchorPoint(ccp(0, 0))
-    sp:setAnchorPoint(ccp(0, 0))
+    --lay:setAnchorPoint(ccp(0, 0))
+    --sp:setAnchorPoint(ccp(0, 0))
 
     function obj:touchBegan(x, y)
         --params.touchBegan(params.delegate, x, y)
@@ -120,6 +123,7 @@ function ui.newButton(params)
         lay:setContentSize(CCSizeMake(w, h))
         setSize(sp, {w, h})
     end
+    obj:setAnchor(0.5, 0.5)
     registerTouch(obj)
     return obj
 end

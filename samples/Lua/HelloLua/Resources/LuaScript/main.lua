@@ -42,7 +42,7 @@ local function main()
     --]]
 
     --global.director:runWithScene(ui.createScene(MainMap.new()))
-    global.director:runWithScene(ui.createScene(MainDialog.new()))
+    global.director:runWithScene(mainScene())
 end
 
 xpcall(main, __G__TRACKBACK__)

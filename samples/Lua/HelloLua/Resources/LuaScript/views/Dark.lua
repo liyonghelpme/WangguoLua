@@ -1,15 +1,16 @@
 Dark = class()
-function Dark:ctor(auto)
+function Dark:ctor(auto, gray)
     self.autoPop = auto
     self.bg = CCLayer:create()
-    local sp = CCSprite:create("images/black.png")
-    --sp:setColor(ccc3(0, 0, 0))
-    --sp:setOpacity(0.5)
-    sp:setOpacity(255)
-    sp:setColor(ccc3(255, 255, 255))
-    setPos(sp, {global.director.disSize[1]/2, global.director.disSize[2]/2})
-    setSize(sp, global.director.disSize)
-    self.bg:addChild(sp)
+    print("Dark ctor", auto, gray)
+    if gray == 1 then
+        local sp = CCSprite:create("images/black.png")
+        sp:setOpacity(255)
+        sp:setColor(ccc3(255, 255, 255))
+        setPos(sp, {global.director.disSize[1]/2, global.director.disSize[2]/2})
+        setSize(sp, global.director.disSize)
+        self.bg:addChild(sp)
+    end
     registerEnterOrExit(self)
     registerTouch(self)
 end

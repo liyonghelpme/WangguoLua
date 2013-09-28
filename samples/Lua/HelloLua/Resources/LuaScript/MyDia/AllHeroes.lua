@@ -10,15 +10,15 @@ function AllHeroes:goBack()
     return true
 end
 function AllHeroes:goFight()
-    global.director:pushView(AllFight.new(), 1, 0)
+    global.director:pushView(AllFight.new(), 1, 0, 1)
     return false
 end
 function AllHeroes:call()
-    global.director:pushView(Store.new(), 1, 0)
+    global.director:pushView(Store.new(), 1, 0, 1)
     return false
 end
 function AllHeroes:sell()
-    global.director:pushView(Sell.new(), 1, 0)
+    global.director:pushView(Sell.new(), 1, 0, 1)
     return false
 end
 function AllHeroes:chooseHero(i, dataNum)

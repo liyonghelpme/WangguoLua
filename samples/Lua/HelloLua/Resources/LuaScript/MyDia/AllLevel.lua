@@ -8,7 +8,7 @@ function AllLevel:goUpdate()
     return true
 end
 function AllLevel:goLevel(num, dataNum)
-    global.director:pushView(AllFriend.new(nil, Logic.level[dataNum]), 1, 0)
+    global.director:pushView(AllFriend.new(nil, Logic.level[dataNum]), 1, 0, 1)
     return false
 end
 function AllLevel:ctor()
@@ -87,18 +87,6 @@ function AllLevel:touchEnded(x, y)
             if ret then
                 return
             end
-            --[[
-            if i == #self.content-1 then
-                global.httpController:addRequest('getAllLevel', dict(), self.getAllLevel, nil, self)
-            elseif i == #self.content then
-                global.director:popView()
-                return
-            else
-                global.director:pushView(AllFriend.new(nil, i), 1, 0)
-                --进入特定关卡
-                
-            end
-            --]]
         end
     end
 
