@@ -24,4 +24,6 @@ function SmallDialog:initCenter()
     but = ui.newButton({image="closeBut.png", delegate=self, callback=self.close})
     temp:addChild(but.bg)
     setPos(but.bg, {354, 226})
+
+
 end

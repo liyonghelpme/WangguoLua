@@ -21,8 +21,8 @@ end
 function Dark:touchMoved(x, y)
 end
 function Dark:touchEnded(x, y)
-    if self.autoPop then
-        global.director.popView()
+    if self.autoPop == 1 then
+        global.director:popView()
     end
 end
 
