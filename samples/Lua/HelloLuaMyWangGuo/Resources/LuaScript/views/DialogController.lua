@@ -1,3 +1,4 @@
+require "views.Happen"
 DialogController = class()
 function DialogController:ctor(sc)
     self.scene = sc
@@ -24,6 +25,12 @@ function DialogController:update(diff)
         if #self.cmds > 0 then
             local curCmd = table.remove(self.cmds, 1)
             if curCmd['cmd'] == "login" then
+            elseif curCmd['cmd'] == "roleName" then
+                global.director:pushView(RoleName.new(), 1, 0)
+            elseif curCmd['cmd'] == 'firstGame' then
+                global.director:pushView(NewDialog.new(getStr("firstGame")), 1, 0)
+            elseif curCmd['cmd'] == 'monGen' then
+                global.director:pushView(Happen.new(getStr("monGen")), 1, 0)
             end
         end
     end
@@ -32,7 +39,9 @@ end
 function DialogController:addBanner(banner)
     while #self.bannerStack > getParam("maxBannerNum") do
         local t = table.remove(self.bannerStack, 1)
-        removeSelf(t[1])
+        if t[1].bg ~= nil then
+            removeSelf(t[1].bg)
+        end
     end
 
     local maxOff = #self.bannerStack

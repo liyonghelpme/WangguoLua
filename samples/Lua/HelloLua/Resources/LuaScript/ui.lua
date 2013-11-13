@@ -53,6 +53,30 @@ ui.TEXT_VALIGN_TOP    = kCCVerticalTextAlignmentTop
 ui.TEXT_VALIGN_CENTER = kCCVerticalTextAlignmentCenter
 ui.TEXT_VALIGN_BOTTOM = kCCVerticalTextAlignmentBottom
 
+function ui.newBMFontLabel(params)
+    assert(type(params) == "table",
+           "[framework.client.ui] newBMFontLabel() invalid params")
+
+    local text      = tostring(params.text)
+    local font      = params.font
+    local textAlign = params.align or ui.TEXT_ALIGN_CENTER
+    local color      = params.color or display.COLOR_WHITE
+    local x, y      = params.x, params.y
+    local size      = params.size
+    assert(font ~= nil, "ui.newBMFontLabel() - not set font")
+    local baseSize = 35
+    local k = size/baseSize
+    local label = CCLabelBMFont:create(text, font, kCCLabelAutomaticWidth, textAlign)
+    label:setScale(k)
+    if not label then return end
+    label:setColor(color)
+    if type(x) == "number" and type(y) == "number" then
+        label:setPosition(x, y)
+    end
+
+    return label
+end
+
 function ui.newTTFLabel(params)
     local text       = tostring(params.text)
     local font       = params.font or ui.DEFAULT_TTF_FONT
@@ -62,9 +86,14 @@ function ui.newTTFLabel(params)
     local textValign = params.valign or ui.TEXT_VALIGN_CENTER
     local x, y       = params.x, params.y
     local dimensions = params.dimensions
+    local strokeColor = params.strokeColor
+    local strokeSize = params.strokeSize
+    local updateTexture = params.updateTexture
 
+        
     local label
     if dimensions then
+        dimensions = CCSizeMake(dimensions[1], dimensions[2])
         label = CCLabelTTF:create(text, font, size, dimensions, textAlign, textValign)
     else
         label = CCLabelTTF:create(text, font, size)
@@ -85,28 +114,57 @@ function ui.newTTFLabel(params)
 
         if x and y then label:realign(x, y) end
     end
+    if strokeColor ~= nil then
+        strokeColor = ccc3(strokeColor[1], strokeColor[2], strokeColor[3])
+        label:enableStroke(strokeColor, strokeSize, updateTexture)
+    end
 
     return label
 end
 --[[
 image 
 callback
+size 点击范围
+delegate 
+text
 --]]
 function ui.newButton(params)
     local obj = {}
     local lay = CCLayer:create()
-    local sp = CCSprite:create(params.image)
+    local size = params.size
+    local text = params.text
+    local sp = nil
+    local fs = params.fs
+
+    if params.image == nil then
+        sp = CCSprite:create()
+        sp:setContentSize(CCSizeMake(size[1], size[2]))
+    else
+        sp = CCSprite:create(params.image)
+    end
     lay:addChild(sp)
     obj.bg = lay
     local sz = sp:getContentSize()
     lay:setContentSize(sz)
     --lay:setAnchorPoint(ccp(0, 0))
     --sp:setAnchorPoint(ccp(0, 0))
+    --sprite 缩放 lay 不缩放 或者使用sprite9来做
+    local spSize = sz
 
     function obj:touchBegan(x, y)
         --params.touchBegan(params.delegate, x, y)
         local p = sp:convertToNodeSpace(ccp(x, y))
-        return checkIn(p.x, p.y, sz)
+        local ret = checkIn(p.x, p.y, sz)
+        if ret then
+            local tempSp = CCSprite:create(params.image)
+            lay:addChild(tempSp)
+            local function removeTemp()
+                removeSelf(tempSp)
+            end
+            setSize(tempSp, spSize)
+            tempSp:runAction(sequence({spawn({scaleby(0.5, 1.2, 1.2), fadeout(0.5)}), callfunc(nil, removeTemp)}))
+        end
+        return ret
     end
     function obj:touchMoved(x, y)
         --params.touchMoved(params.delegate, x, y)
@@ -120,11 +178,22 @@ function ui.newButton(params)
         return obj
     end
     function obj:setContentSize(w, h)
+        spSize = {w, h}
         lay:setContentSize(CCSizeMake(w, h))
         setSize(sp, {w, h})
     end
+    if size ~= nil then
+        obj:setContentSize(size[1], size[2])
+    end
     obj:setAnchor(0.5, 0.5)
+    obj.sp = sp
     registerTouch(obj)
+
+    if text ~= nil then
+        obj.text = ui.newTTFLabel({text=text, size=fs})
+        obj.text:setAnchorPoint(ccp(0.5, 0.5))
+        obj.bg:addChild(obj.text)
+    end
     return obj
 end
 
@@ -169,6 +238,7 @@ end
 
 function ui.createScene(view)
     local scene = {bg=CCScene:create()}
+    view.bg:setPosition(ccp(0, 0))
     scene.bg:addChild(view.bg)
     return scene
 end

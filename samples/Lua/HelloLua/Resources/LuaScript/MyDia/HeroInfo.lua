@@ -66,26 +66,37 @@ function HeroInfo:initLeftTop()
     setPos(lt, {vs.width-236, vs.height-33})
     
     local temp = setPos(setAnchor(addLabel(lt, getStr("name"), "", 18), {0, 0.5}), {0, 0})
+    setColor(temp, {0, 0, 0})
     self.name = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("level"), "", 18), {0, 0.5}), {0, -30})
+    setColor(temp, {0, 0, 0})
     self.level = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("job"), "", 18), {0, 0.5}), {0, -60})
+    setColor(temp, {0, 0, 0})
     self.job = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("attack"), "", 18), {0, 0.5}), {0, -90})
+    setColor(temp, {0, 0, 0})
     self.attack = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("health"), "", 18), {0, 0.5}), {0, -120})
+    setColor(temp, {0, 0, 0})
     self.health = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("magicDef"), "", 18), {0, 0.5}), {0, -150})
+    setColor(temp, {0, 0, 0})
     self.magicDef = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("physicDef"), "", 18), {0, 0.5}), {0, -180})
+    setColor(temp, {0, 0, 0})
     self.physicDef = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("attSpeed"), "", 18), {0, 0.5}), {0, -210})
+    setColor(temp, {0, 0, 0})
     self.attSpeed = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("move"), "", 18), {0, 0.5}), {0, -240})
+    setColor(temp, {0, 0, 0})
     self.move = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("skill"), "", 18), {0, 0.5}), {0, -270})
+    setColor(temp, {0, 0, 0})
     self.skill = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("equip"), "", 18), {0, 0.5}), {0, -300})
+    setColor(temp, {0, 0, 0})
     self.equip = temp
 end
 function HeroInfo:initData()
@@ -93,12 +104,12 @@ function HeroInfo:initData()
     self.name:setString("名称:"..name)
     self.level:setString("等级"..self.hero['level'])
     self.job:setString("职业"..self.hero["job"])
-    self.attack:setString("攻击"..getAttack(self.hero['hid']))
-    self.health:setString("生命值"..getHealth(self.hero['hid']))
-    self.magicDef:setString("魔法防御"..getMagicDef(self.hero['hid']))
-    self.physicDef:setString("物理防御"..getPhysicDef(self.hero['hid']))
-    self.attSpeed:setString("攻击速度"..getAttSpeed(self.hero['hid']))
-    self.move:setString("行动值"..getMove(self.hero['hid']))
+    self.attack:setString("攻击"..getAttack(self.hero['kind'], self.hero["level"]))
+    self.health:setString("生命值"..getHealth(self.hero['kind'], self.hero["level"]))
+    self.magicDef:setString("魔法防御"..getMagicDef(self.hero['kind'], self.hero["level"]))
+    self.physicDef:setString("物理防御"..getPhysicDef(self.hero['kind'], self.hero["level"]))
+    self.attSpeed:setString("攻击速度"..getAttSpeed(self.hero['kind'], self.hero["level"]))
+    self.move:setString("行动值"..getMove(self.hero['kind'], self.hero["level"]))
     self.skill:setString("技能"..getSkill(self.hero['hid']))
     self.equip:setString("装备"..getEquip(self.hero['hid']))
 end

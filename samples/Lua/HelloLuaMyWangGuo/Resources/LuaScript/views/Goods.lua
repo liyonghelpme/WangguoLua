@@ -10,13 +10,15 @@ function Goods:ctor(s)
     self.cachePos = {}
     
     self.bg = CCNode:create()
-    
+    --setDesignXY(self.bg)
+
     self.cl = Scissor:create()
     self.bg:addChild(self.cl)
-    self.cl:setPosition(ccp(271, fixY(nil, 145, self.HEIGHT)))
-    self.cl:setContentSize(CCSizeMake(500, self.HEIGHT))
+    self.cl:setPosition(ccp(271, fixY(global.director.designSize[2], 145, self.HEIGHT)))
+    local sca = getDesignSca()
+    self.cl:setContentSize(CCSizeMake(800*sca, self.HEIGHT*sca))
 
-    self.title = setPos(setAnchor(addSprite(self.bg, "images/buyDrug.png"), {0.5, 0.5}), {515, fixY(nil, 112)})
+    self.title = setPos(setAnchor(addSprite(self.bg, "buyDrug.png"), {0.5, 0.5}), {515, fixY(global.director.designSize[2], 112)})
 
     self.goodNum = {}
     self.flowNode = addNode(self.cl)
@@ -28,7 +30,7 @@ function Goods:ctor(s)
 
     self.touch = ui.newTouchLayer({size={500, self.HEIGHT}, delegate=self, touchBegan=self.touchBegan, touchMoved=self.touchMoved, touchEnded=self.touchEnded})
     self.bg:addChild(self.touch.bg)
-    setPos(self.touch.bg, {271, fixY(nil, 145, self.HEIGHT)})
+    setPos(self.touch.bg, {271, fixY(global.director.designSize[2], 145, self.HEIGHT)})
 end
 function Goods:initSameElement(buildData, panel)
     local objKind = buildData[1]
@@ -38,18 +40,72 @@ function Goods:initSameElement(buildData, panel)
     local data = getData(objKind, objId)
     local needLevel = getDefault(data, "level", 0)
     local gain = getGain(objKind, objId)
+    
+    local buildPicName
+    if objKind == GOODS_KIND.GOLD then
+        if objId == 0 then
+            buildPicName = "gold.png"
+        elseif objId == 1 then
+            buildPicName = "crystal.png"
+        elseif objId == 2 then
+            buildPicName = "silver.png" 
+        end
+    else
+        buildPicName = replaceStr(KindsPre[objKind], {"[ID]", objId})
+    end
 
-    local buildPicName = replaceStr(KindsPre[objKind], {"[ID]", objId})
     local showaGain = getDefault(data, "showGain", 1)
 
     --panel is a touchButton or background is a touch zone
     local sz = panel:getContentSize()
-    local buildPic = setPos(addSprite(panel, "images/"..buildPicName), {74, fixY(sz.height, 88)})
+    local buildPic = setPos(addSprite(panel, buildPicName), {74, fixY(sz.height, 88)})
     local ret
     --灰色建筑图 生成
     --调整图像的 纹理
     if objKind == GOODS_KIND.BUILD then
+        local ret = checkBuildNum(objId)
+        --已经达到当前等级的该建筑数量的上限
+        if ret[1] == false then
+            
+        end
+        --建筑物存在数量限制
+        if ret[3] == 1 then
+            setColor(setPos(setAnchor(addLabel(panel, str(getCurBuildNum(objId)).."/"..str(getBuildEnableNum(objId)[1]), "", 20), {0.5, 0.5}), {121, fixY(sz.height, 134)}), fixColor({43, 25, 9}))
+            showGain = 0
+        end
+        setColor(setAnchor(setPos(addLabel(panel, data.name, "", 20), {78, fixY(sz.height, 25)}), {0.5, 0.5}), {0, 0, 0})
+    elseif objKind == GOODS_KIND.GOLD then
+        setColor(setAnchor(setPos(addLabel(panel, getStr("freeIt"), "", 20), {78, fixY(sz.height, 25)}), {0.5, 0.5}), {0, 0, 0})
     end
+    local cn = 0
+    for k, v in pairs(cost) do
+        local c = {109, 170, 44}
+        local picName = k..".png"
+        local valNum = str(v)
+        local buyable = global.user:checkCost(cost)
+        if buyable.ok == 0 then
+            c = {208, 70, 72}
+        end
+        local cPic = setSize(setAnchor(setPos(addSprite(panel, picName), {31, fixY(sz.height, 170)}), {0.5, 0.5}), {30, 30})
+        local cNum = ui.newBMFontLabel({text=valNum, font="bound.fnt", color=c, size=18})
+        panel:addChild(cNum)
+        setAnchor(setPos(cNum, {83, fixY(sz.height, 169)}), {0.5, 0.5})
+        cn = 1
+        break
+    end
+    --免费获得金币
+    if objKind == GOODS_KIND.GOLD then
+        if objId == 0 then
+            local cNum = ui.newTTFLabel({text=getStr("free0"), size=20, color={255, 215, 0}})
+            panel:addChild(cNum)
+            setAnchor(setPos(cNum, {83, fixY(sz.height, 169)}), {0.5, 0.5})
+        elseif objId == 1 then
+            local cNum = ui.newTTFLabel({text=getStr("free1"), size=20, color={255, 215, 0}})
+            panel:addChild(cNum)
+            setAnchor(setPos(cNum, {83, fixY(sz.height, 169)}), {0.5, 0.5})
+        end
+    end
+
     local sca
     if showGain == 0 then
         setPos(buildPic, {74, fixY(sz.height, 97)})
@@ -66,8 +122,8 @@ end
 
 function Goods:getShowRange()
     local px, py = self.flowNode:getPosition()
-    local upRow = math.max(0, round(-py/self.offY))
-    local lowRow = round((-py+self.HEIGHT+self.offY)/self.offY)
+    local upRow = math.max(0, round((py-self.HEIGHT)/self.offY))
+    local lowRow = round((py+self.offY)/self.offY)
     local rows = (#self.goodNum+self.PAN_PER_ROW-1)/self.PAN_PER_ROW
     return {math.max(0, upRow-1), math.min(lowRow+1, rows)}
 end
@@ -84,6 +140,7 @@ function Goods:updateTab(rg)
 
     print("updateTab", rg[1], rg[2], #self.goodNum, self.PAN_PER_ROW)
     local i = math.max(0, rg[1]*self.PAN_PER_ROW)
+    --显示金币的购买回调函数 和 store的不同
     while i < #self.goodNum and i < rg[2]*self.PAN_PER_ROW do
         --print(i, rg[1], rg[2], #self.goodNum)
         if i % 3 == 0 then
@@ -93,13 +150,13 @@ function Goods:updateTab(rg)
             posX = posX+self.offX
         end
         local panel = setAnchor(setContentSize(setPos(addNode(self.flowNode), {posX, posY}), {149, 188}), {0, 0})
-        local pb = setAnchor(setSize(addSprite(panel, "images/goodPanel.png"), {149, 188}), {0, 0})
+        local pb = setAnchor(setSize(addSprite(panel, "goodPanel.png"), {149, 188}), {0, 0})
 
         local buildData = self.goodNum[i+1]
         print('buildData', self.selTab, i, buildData)
         local canBuy = self:initSameElement(buildData, panel)
         panel:setTag(i)
-        self.data[i] = {self.selTab, i, canBuy}
+        self.data[i] = {self.selTab, i, canBuy, panel}
 
         print('panelData', panel.data)
         
@@ -113,11 +170,21 @@ function Goods:updateTab(rg)
     local fHeight = rows*self.offY
     --maxPos 更合适
     self.minPos = math.max(0, fHeight-self.HEIGHT)
+    self:showHint(self.hint)
+end
+function Goods:showHint(h)
+    self.hint = h
+    if h ~= nil then
+        local hint = Hint.new()
+        self.data[h][4]:addChild(hint.bg)
+        NewLogic.setHint(hint)
+        setPos(hint.bg, {75, 95})
+    end
 end
 function Goods:setTab(g)
     self.selTab = g
     self.curSel = nil
-    local tex = CCTextureCache:sharedTextureCache():addImage("images/"..self.store.titles[g+1])
+    local tex = CCTextureCache:sharedTextureCache():addImage(self.store.titles[g+1])
     self.title:setTexture(tex)
     
     self.goodNum = self.store.allGoods[self.selTab+1]
@@ -175,12 +242,14 @@ function Goods:touchEnded(x, y)
 end
 function Goods:showGreenBut(child)
     self.shadow = addNode(child)
-    setColor(setSize(setPos(setAnchor(addSprite(self.shadow, "images/storeShadow.png"), {0, 0}), {0, 0}), {151, 191}), {255, 255, 255, 125})
-    local but0 = ui.newButton({image="images/greenButton0.png", delegate=self, callback=self.onBuy, param=self.data[child:getTag()]})
+    setColor(setSize(setPos(setAnchor(addSprite(self.shadow, "storeShadow.png"), {0, 0}), {0, 0}), {151, 191}), {255, 255, 255, 125})
+    local but0 = ui.newButton({image="greenButton0.png", delegate=self, callback=self.onBuy, param=self.data[child:getTag()]})
     but0.bg:setPosition(ccp(75, fixY(191, 97)))
     but0:setAnchor(0.5, 0.5)
     but0:setContentSize(128, 39)
     self.shadow:addChild(but0.bg)
+    local sz = but0.bg:getContentSize()
+    local label = setAnchor(setPos(addLabel(but0.bg, getStr("sureToBuy"), "", 20), {0, 0}), {0.5, 0.5})
 end
 function Goods:onBuy(buildData)
     self.curSel = nil

@@ -4,6 +4,7 @@ function AllFriend:goBack()
     return true
 end
 function AllFriend:selHero(num, dataNum)
+    Logic.curFriend = dataNum
     global.director:pushView(Formation.new(nil, Logic.allFriend[dataNum]['uid'], self.enemyUser), 1, 0, 1)
     return false
 end
@@ -14,7 +15,7 @@ function AllFriend:ctor(mainDialog, enemyUser)
     self.HEIGHT = 70
     self.BACK_HEI = global.director.disSize[2]
     self.INITOFF = self.BACK_HEI-80
-    self.content = {{'返回', self.goBack}, {'好友英雄 骑士1转1级', self.selHero}}
+    self.content = {{'返回', self.goBack}}--, {'好友英雄 骑士1转1级', self.selHero}
     self.TabNum = #self.content
     self.data = {}
     --self.mainDialog = mainDialog
@@ -51,7 +52,8 @@ function AllFriend:getAllFriend(rep, param)
                 break
             end
         end
-        local name = Logic.allHeroData[ch['kind']]['name']
+        print("friends role view", ch.kind)
+        local name = Logic.roleViewProperty[getViewId(ch['kind'])]['remark']
         table.insert(self.content, {'好友英雄 '..name..' '..ch['job']..'转'..' '..ch['level']..'级', self.selHero, count, k})
     end
 

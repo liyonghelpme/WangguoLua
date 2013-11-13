@@ -1,3 +1,4 @@
+require "Event"
 User = class()
 function User:ctor()
     self.papayaName = "liyong"
@@ -10,9 +11,11 @@ function User:ctor()
     self.resource = {}
     --id ----> buildingData
     self.buildings = {
-        [1]={id=0, px=1000, py=300, state=1, dir=0, objectId=0},
+        --[1]={kind=0, px=1000, py=300, state=1, dir=0, objectId=0},
     }
-    self.soldiers = {}
+    self.soldiers = {
+        --kind num
+    }
     self.drugs = {}
     self.equips = {}
     self.herbs = {}
@@ -25,21 +28,56 @@ function User:ctor()
         {3, 3, 3, 3, 3, 3, 3},
         {3, 3, 3, 3, 3, 3, 3},
     }
+    Event:registerEvent(CPP_EVENT.EVENT_SETPOINT, self)
+end
+function User:receiveMsg(name, msg)
+    print("receive User msg", name, msg)
+    if name == CPP_EVENT.EVENT_SETPOINT then
+        local gold = CCUserDefault:sharedUserDefault():getIntegerForKey("gold")
+        print("User setValue Gold", gold)
+        self:setValue('gold', gold)
+    end
 end
 function User:initDataOver(data, param)
     if data ~= nil then
-        self.serverTime = 0
+        --登陆的时候 服务器时间
+        self.serverTime = data.serverTime
         self.clientTime = Timer.now
 
         self.uid = data.uid
+        self.buildings = {}
+        self.maxBid = 0
+        for k, v in ipairs(data.builds) do
+            self.buildings[v['bid']] = v
+            v.objectList = simple.decode(v.objectList)
+            self.maxBid = math.max(v['bid'], self.maxBid)
+        end
+        for k, v in ipairs(data.soldiers) do
+            self.soldiers[v.kind] = v.num
+        end
+        --保留从有米服务器获得的金币数量
+        local youmigold = self.resource.gold or 0
+        self.resource = data.resource
+        print("youmi gold my gold", youmigold, self.resource.gold)
+        --test gold
+        if DEBUG then
+            self.resource.gold = 2000
+        else
+            self.resource.gold = youmigold
+        end
+
+        self:changeValue("exp", 0)
         print("sendMsg")
         self.initYet = true
         Event:sendMsg(EVENT_TYPE.INITDATA)
     end
 end
 function User:initData()
-   --Network.postData("login", self, self.initDataOver, {papayaId=self.papayaId, papayaName=self.papayaName})
-   self:initDataOver({uid=1234})
+    --Network.postData("login", self, self.initDataOver, {papayaId=self.papayaId, papayaName=self.papayaName})
+    self.username = CCUserDefault:sharedUserDefault():getStringForKey("username")
+    print("username", username)
+    global.httpController:addRequest("login", dict({{"account", self.username}}), self.initDataOver, nil, self)
+    --self:initDataOver({uid=1234})
 end
 
 function User:getNewBid()
@@ -48,11 +86,15 @@ function User:getNewBid()
 end
 
 function User:updateBuilding(build)
+    --不要更新战斗建筑物的数据 到我方建筑物中
+    if BattleLogic.inBattle then
+        return
+    end
     if build.bid == -1 then
         return
     end
     --trace("updateBuilding", build, build.id, build.bid, build.getPos(), build.state, build.dir, build.getObjectId(), build.getStartTime());
-    self.buildings[build.bid] = dict({{"id", build.id}, {"px", build:getPos()[1]}, {"py", build:getPos()[2]}, {"state", build.state}, {"dir", build.dir}, {"objectId", build:getObjectId()}, {"objectTime", build:getStartTime()}, {"level", build.buildLevel}, {"color", build.buildColor}, {"objectList", build.objectList}})
+    self.buildings[build.bid] = dict({{"kind", build.kind}, {"px", build:getPos()[1]}, {"py", build:getPos()[2]}, {"state", build.state}, {"dir", build.dir}, {"objectId", build:getObjectId()}, {"objectTime", build:getStartTime()}, {"level", build.buildLevel}, {"color", build.buildColor}, {"objectList", build.objectList}})
 end
 function User:getValue(key)
     return getDefault(self.resource, key, 0)
@@ -76,19 +118,21 @@ function User:changeValue(key, add)
         self:setValue("level", level)
 
         if level ~= oldLevel then
-            global.msgCenter:sendMsg(EVENT_TYPE.LEVEL_UP)
-            global.httpController:addRequest("levelUp", dict({{"uid", uid}, {"exp", v}, {"level", level}, {"rew", dict()}}), nil, nil)
+            Event:sendMsg(EVENT_TYPE.LEVEL_UP)
+            global.httpController:addRequest("levelUp", dict({{"uid", self.uid}, {"exp", v}, {"level", level}, {"rew", dict()}}), nil, nil)
             addV = 0
         end
     end
 
     self:setValue(key, v)
     if key == "exp" then
-        global.msgCenter:sendMsg(EVENT_TYPE.UPDATE_EXP, addV)
+        Event:sendMsg(EVENT_TYPE.UPDATE_EXP, addV)
     end
+    Event:sendMsg(EVENT_TYPE.UPDATE)
 end
 
 function User:doCost(cost)
+    print("doCost!!!!!!", simple.encode(cost))
     for k, v in pairs(cost) do
         self:changeValue(k, -v)
     end
@@ -104,10 +148,15 @@ function User:getLastColor()
     return self.lastColor
 end
 
-function User:buyBuilding(build)
-    local cost = getCost(GOODS_KIND.BUILD, build.id);
+function User:sellBuilding(b, g)
+    self:doAdd(g)
+    self.buildings[b.bid] = nil
+end
+function User:buyBuilding(build, cost)
+    print("buyBuilding", build.kind)
+    --local cost = getCost(GOODS_KIND.BUILD, build.kind);
     self:doCost(cost)
-    local gain = getGain(GOODS_KIND.BUILD, build.id);
+    local gain = getGain(GOODS_KIND.BUILD, build.kind);
     self:doAdd(gain)
     self:updateBuilding(build)
 end
@@ -125,4 +174,37 @@ function User:checkCost(cost)
         end
     end
     return buyable
+end
+function User:addSoldier(kind)
+    local n = getDefault(self.soldiers, kind, 0)
+    n = n+1
+    self.soldiers[kind] = n
+    Event:sendMsg(EVENT_TYPE.ADD_SOLDIER, kind)
+end
+function User:getSolNum()
+    local c = 0
+    for k, v in pairs(self.soldiers) do
+        c = c + v
+    end
+    return c
+end
+
+function User:getPeopleNum()
+    local level = self:getValue("level")
+    local n = (level+1)*5
+    return n
+end
+function User:getCampProductNum()
+    local countNum = 0
+    for k, v in pairs(self.buildings) do
+        --兵营
+        if v.kind == 224 then
+            countNum = countNum+#v.objectList 
+        end
+    end
+    return countNum
+end
+function User:killSoldier(kind)
+    print("kill Soldier", kind)
+    self.soldiers[kind] = self.soldiers[kind]-1
 end

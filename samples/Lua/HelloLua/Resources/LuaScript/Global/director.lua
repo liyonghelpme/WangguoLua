@@ -9,7 +9,7 @@ function Director:ctor()
     self.allSceneView = {}
     --当前场景中的view 列表
     self.stack = {}
-    self.designSize = {800, 480}
+    self.designSize = {1024, 768}
     local vs = CCDirector:sharedDirector():getVisibleSize()
     self.disSize = {vs.width, vs.height}
     self.sceneStack = {}

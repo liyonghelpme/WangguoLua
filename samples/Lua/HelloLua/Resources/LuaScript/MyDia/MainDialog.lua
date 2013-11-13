@@ -1,3 +1,4 @@
+require "MyDia.AllFx"
 require "MyDia.SmallDialog"
 local simple = require "dkjson"
 MainDialog = class()
@@ -17,7 +18,10 @@ end
 function MainDialog:onLeague()
 end
 function MainDialog:onTest()
-    global.director:pushView(SmallDialog.new(self), 1, 0)
+    global.director:pushView(SmallDialog.new(self), 1, 0, 1)
+end
+function MainDialog:onFX()
+    global.director:pushView(AllFx.new(self), 1, 0, 1)
 end
 function MainDialog:ctor()
     self.INIT_X = 0
@@ -26,7 +30,7 @@ function MainDialog:ctor()
     self.HEIGHT = 70
     self.BACK_HEI = global.director.disSize[2]
     self.INITOFF = self.BACK_HEI-80
-    self.content = {{'PVE', self.onPVE}, {'PVP', self.onPVP}, {'英雄', self.onHero}, {'任务', self.onTask}, {'好友', self.onFriend}, {'帮会', self.onLeague}, {'test', self.onTest}}
+    self.content = {{'PVE', self.onPVE}, {'PVP', self.onPVP}, {'英雄', self.onHero}, {'任务', self.onTask}, {'好友', self.onFriend}, {'帮会', self.onLeague}, {'特效', self.onFX}}
     self.TabNum = #self.content
     self.data = {}
 
@@ -50,21 +54,27 @@ function MainDialog:initLeftTop()
     local lt = addNode(self.bg)
     setPos(lt, {vs.width-236, vs.height-33})
     local temp = setPos(setAnchor(addLabel(lt, getStr("level"), "", 18), {0, 0.5}), {0, 0})
+    setColor(temp, {0, 0, 0})
     self.level = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("exp"), "", 18), {0, 0.5}), {0, -30})
+    setColor(temp, {0, 0, 0})
     self.exp = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("name"), "", 18), {0, 0.5}), {0, -60})
+    setColor(temp, {0, 0, 0})
     self.name = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("strength"), "", 18), {0, 0.5}), {0, -90})
+    setColor(temp, {0, 0, 0})
     self.strength = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("crystal"), "", 18), {0, 0.5}), {0, -120})
+    setColor(temp, {0, 0, 0})
     self.crystal = temp
     temp = setPos(setAnchor(addLabel(lt, getStr("gold"), "", 18), {0, 0.5}), {0, -150})
+    setColor(temp, {0, 0, 0})
     self.gold = temp
 end
 function MainDialog:updateValue()
-    self.level:setString("等级:"..Logic.userData.level)
-    self.exp:setString("经验:"..Logic.userData.exp)
+    self.level:setString(getStr("等级:")..Logic.userData.level)
+    self.exp:setString(getStr("经验:")..Logic.userData.exp)
     self.name:setString("用户名:"..Logic.userData.name)
     self.strength:setString("体力值:"..Logic.userData.strength.."/"..getMaxStrength())
     self.crystal:setString("宝石:"..Logic.userData.crystal)
@@ -80,6 +90,50 @@ function MainDialog:getAllHeroData(rep, param)
     Logic.allHeroData = {}
     for k, v in ipairs(rep['heroData']) do
         Logic.allHeroData[v['id']] = v
+    end
+    Logic.roleViewProperty = {}
+    for k, v in ipairs(rep['viewData']) do
+        Logic.roleViewProperty[v['id']] = v
+        v.effects = json.decode(v.effects)
+    end
+    print("initKnightFx", Logic.knight_fx)
+    Logic.knight_fx = rep["viewData"]
+
+    Logic.skills = {}
+    for k, v in ipairs(rep['skillData']) do
+        Logic.skills[v['id']] = v
+    end
+    Logic.enemys = {}
+    for k, v in ipairs(rep['enemysData']) do
+        Logic.enemys[v['lid']+1] = json.decode(v['formation'])
+    end
+    Logic.others = {}
+    for k, v in ipairs(rep['others']) do
+        Logic.others[v['name']] = json.decode(v['content'])
+    end
+    Logic.strings = {}
+    for k, v in ipairs(rep["strings"]) do
+        Logic.strings[v["key"]] = v
+    end
+    Logic.params = {}
+    for k, v in ipairs(rep["params"]) do
+        Logic.params[v["key"]] = v["value"]
+    end
+    Logic.knight_heroData = {}
+    for k, v in ipairs(rep["knight_heroData"]) do
+        --print('hdata', v.id, v)
+        Logic.knight_heroData[v.id] = v
+    end
+    Logic.game_fx = {}
+    for k, v in ipairs(rep.game_fx) do
+        --Logic.game_fx[v.id] = v
+        local sfx = getDefault(Logic.game_fx, v.sceneId, {})
+        table.insert(sfx, v)
+    end
+
+    Logic.skill_fx = {}
+    for k, v in ipairs(rep.game_fx) do
+        Logic.skill_fx[v.id] = v
     end
 end
 

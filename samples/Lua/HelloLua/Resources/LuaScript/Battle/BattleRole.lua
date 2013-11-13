@@ -12,7 +12,7 @@ PropertyBuffType = {Attack=1, Defense=2}
 
 DamageType = {Physic=1, Magic=2, Cure=3}
 DamageArea = {Col=1, Row=2, Map=3, Single=4}
-DamageSelector = {FirstCol=1, LastCol=2, Row=3, MaxLoseHp=4, Random=5}
+DamageSelector = {FirstCol=1, LastCol=2, Row=3, MaxLoseHp=4, Random=5, Self=6}
 
 require "Battle.BattleRand"
 
@@ -99,6 +99,10 @@ SingleSelectors[DamageSelector.Random] = function(selfRole, targets)
     return ret[BattleRand.random(#ret)]
 end
 
+SingleSelectors[DamageSelector.Self] = function(selfRole, targets)
+    return selfRole
+end
+
 AreaSelectors={}
 AreaSelectors[DamageArea.Col] = function(targetRole, targets)
     local ret = {}
@@ -176,15 +180,32 @@ function SkillModel:initSelector()
     end
 end
 
-function createAnimation(name, format, a,b,c,t)
+local function createAnimation(name, format, a,b,c,t, isFrame)
     local animation = CCAnimationCache:sharedAnimationCache():animationByName(name)
     if not animation then
         animation = CCAnimation:create()
-        for i=a, b, c do
-            animation:addSpriteFrameWithFileName(string.format(format, i))
+        if isFrame then
+            local cache = CCSpriteFrameCache:sharedSpriteFrameCache()
+            for i=a, b, c do
+                animation:addSpriteFrame(cache:spriteFrameByName(string.format(format, i)))
+            end
+        else
+            for i=a, b, c do
+                animation:addSpriteFrameWithFileName(string.format(format, i))
+            end
         end
         animation:setDelayPerUnit(t*c/(b-a+c))
         animation:setRestoreOriginalFrame(true)
+        CCAnimationCache:sharedAnimationCache():addAnimation(animation, name)
+    end
+    return animation
+end
+
+
+local function createAnimation2(name, f, t)
+    local animation = CCAnimationCache:sharedAnimationCache():animationByName(name)
+    if not animation then
+        animation = makeAnimation(t, f) 
         CCAnimationCache:sharedAnimationCache():addAnimation(animation, name)
     end
     return animation
@@ -196,28 +217,42 @@ BattleRoleView = class()
 
 function BattleRoleView:ctor(roleViewId)
     self.roleId = roleViewId
-    self.ax = 0.597
-    self.ay = 0.258
-    self.attackDelay = 0.6
-    self.damageDelay = 0.3
-    self.defenseDelay = 0.3
-    self.shadowX = 1
-    self.shadowY = 1
+    
+    local data = Logic.roleViewProperty[self.roleId]
+    print("viewId", self.roleId)
+    self.attackDelay = data.attack_delay/10
+    self.damageDelay = data.damage_delay/10
+    self.defenseDelay = data.defence_delay/10
+    self.shadowX = data.shadowX/100
+    self.shadowY = data.shadowY/100
+    self.ax = data.ax/1000
+    self.ay = data.ay/1000
+    self.bh = data.bh
+    self.scale = data.scale/100
+    self.djNum = data.dj
+    self.gjNum = data.gj
+    self.sjNum = data.sj
+    self.zouNum = data.zou
 end
 
 function BattleRoleView:createView()
-    local view = CCSprite:create("kulou_dj_00.png")
+    local prefix = "role" .. self.roleId
+    if not CCSpriteFrameCache:sharedSpriteFrameCache():spriteFrameByName(prefix .. "_dj_0.png") then
+        CCSpriteFrameCache:sharedSpriteFrameCache():addSpriteFramesWithFile(prefix .. ".plist")
+    end
+    local view = CCSprite:createWithSpriteFrameName(prefix .. "_dj_0.png")
         
     local animation = CCAnimation:create()
-    self.djAnimation = createAnimation("role" .. self.roleId .. "_dj", "kulou_dj_%02d.png", 0, 27, 3, 0.5)
-    self.gjAnimation = createAnimation("role" .. self.roleId .. "_gj", "kulou_gj_%02d.png", 0, 19, 1, 0.33)
-    self.sjAnimation = createAnimation("role" .. self.roleId .. "_sj", "kulou_sj_%02d.png", 0, 12, 2, 0.25)
-    self.zouAnimation = createAnimation("role" .. self.roleId .. "_zou", "kulou_zou_%02d.png", 0, 27, 3, 0.5)
+    self.djAnimation = createAnimation(prefix .. "_dj", prefix .. "_dj_%d.png", 0, self.djNum-1, 1, Logic.others.other.djtime, true)
+    self.gjAnimation = createAnimation(prefix .. "_gj", prefix .. "_gj_%d.png", 0, self.gjNum-1, 1, self.attackDelay, true)
+    self.sjAnimation = createAnimation(prefix .. "_sj", prefix .. "_sj_%d.png", 0, self.sjNum-1, 1, self.defenseDelay, true)
+    self.zouAnimation = createAnimation(prefix .. "_zou", prefix .. "_zou_%d.png", 0, self.zouNum-1, 1, Logic.others.other.zoutime, true)
 
     self.runDjAnimation = function(node)
         self:runAction(node, "dj", false)
 	    --node:runAction(CCRepeatForever:create(CCAnimate:create(self.djAnimation)))
 	end
+	view:setScale(self.scale)
 	return view
 end
 
@@ -242,6 +277,7 @@ end
 BattleRole = class()
 
 --当role被初始化时，仅初始化其模型数据
+--攻击 防御 魔法防御 生命值 
 function BattleRole:ctor(atk, def, adf, hp, delay, isRemote, roleViewId, normal, skill)
     self.atk = atk
     self.def = def
@@ -250,6 +286,7 @@ function BattleRole:ctor(atk, def, adf, hp, delay, isRemote, roleViewId, normal,
     --self.delay = delay
     self.delay = 1
     self.isRemote = (isRemote==true) or (isRemote==1)
+    --print("roleViewId", json.encode(roleViewId))
     self.viewModel = BattleRoleView.new(roleViewId)
     self.normal = normal
     self.skill = skill
@@ -299,17 +336,19 @@ function BattleRole:executeDamage(damageType, value, damageDelay)
     end
     self:changeHp(ret)
     local function damageOver()
-        local bloodText = CCLabelTTF:create("" .. ret, "", 25)
+        --local bloodText = CCLabelTTF:create("" .. ret, "", 30)
+        local bloodText = ui.newBMFontLabel({text=""..ret, size=30, font="bound.fnt"})
         if ret<0 then
             self.view:stopAllActions()
             self.viewModel:runActionOnceAndRestore(self.view, "sj")
-            bloodText:setColor(ccc3(255,0,0))
+            bloodText:setColor(arrToCol(hexToCol("fd0113")))
         else
-            bloodText:setColor(ccc3(0,255,0))
+            bloodText:setColor(arrToCol(hexToCol("3bea53")))
         end
-        self.blood:addChild(bloodText)
+        local bloodBack = self.blood:getParent()
+        bloodBack:addChild(bloodText)
         bloodText:setAnchorPoint(CCPointMake(0.5,0.5))
-        bloodText:setPosition(self.blood:getContentSize().width/2, -50)
+        bloodText:setPosition(bloodBack:getContentSize().width/2, -50)
         bloodText:runAction(CCSequence:createWithTwoActions(CCDelayTime:create(1), CCCallFuncN:create(removeSelf)))
         bloodText:runAction(CCMoveBy:create(1,CCPointMake(0, 100)))
         self.blood:setTextureRect(CCRectMake(0,0,math.floor(self.bloodSize.width*self.hp/self.hpMax), self.bloodSize.height))
@@ -502,16 +541,17 @@ function BattleRole:initView(bg, isLeft, noBattle)
     local anchor = self.view:getAnchorPoint()
     local size = self.view:getContentSize()
     local shadow = CCSprite:create("roleShadow.png")
-    shadow:setScaleX(self.viewModel.shadowX)
-    shadow:setScaleY(self.viewModel.shadowY)
+    shadow:setScaleX(self.viewModel.shadowX/self.viewModel.scale)
+    shadow:setScaleY(self.viewModel.shadowY/self.viewModel.scale)
     shadow:setAnchorPoint(CCPointMake(0.5, 0.5))
     shadow:setPosition(anchor.x*size.width, anchor.y*size.height)
     self.view:addChild(shadow, -1)
     self.viewModel.runDjAnimation(self.view)
     if not noBattle then
         local back = CCSprite:create("roleBloodBack.png")
-        back:setAnchorPoint(CCPointMake(0.5, 0.5))
-        back:setPosition(size.width*anchor.x, 170)
+        back:setAnchorPoint(CCPointMake(0.5, 0))
+        back:setPosition(size.width*anchor.x, self.viewModel.bh)
+        back:setScale(1/self.viewModel.scale)
         local filler = CCSprite:create("roleBloodFiller.png")
         back:addChild(filler)
         filler:setAnchorPoint(CCPointMake(0,0))

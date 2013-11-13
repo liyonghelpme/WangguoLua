@@ -18,9 +18,17 @@ local function main()
 
     ---------------
     require "Global.INCLUDE"
-    
-    global.director:runWithScene(CastleScene.new())
-    global.director:pushView(Loading.new())
+
+    local director = CCDirector:sharedDirector()
+    local runscene = director:getRunningScene()
+    if runscene == nil then
+        global.director:runWithScene(ca)
+    else
+        local ca = CastleScene.new()
+        director:replaceScene(ca.bg)
+        global.director:onlyRun(ca)
+    end
+    global.director:pushView(Loading.new(), 1, 0, 0)
     --等待加入场景之后 再初始化
     global.user:initData()
 end

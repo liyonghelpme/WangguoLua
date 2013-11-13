@@ -80,7 +80,7 @@ function AllHeroes:realUpdateHero()
     count = #self.content
     for k, v in ipairs(Logic.heroes) do
         count = count+1
-        local name = Logic.allHeroData[v['kind']]['name']
+        local name = Logic.roleViewProperty[getViewId(v['kind'])]['remark']
         if self.temp[v['hid']] ~= nil then
             v['out'] = true
             table.insert(self.content, {name..v['job']..'转'..v['level']..'级 出战', self.chooseHero, k, count})

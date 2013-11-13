@@ -9,17 +9,16 @@ function FlyObject:ctor(obj, c, cb, delegate)
 
     self.bg = CCNode:create()
     --ui 元素在屏幕上的位置 convertToWorldSpace 进行转化
-    local TarPos = dict({{"silver", {297, fixY(nil, 460)}}, {"crystal", {253, fixY(nil, 460)}}, {"gold", {550, fixY(nil, 460)}}, {"exp", {196, fixY(nil, 427)}}})
-    local defaultPos = {297, fixY(nil, 460)}
+    local TarPos = dict({{"silver", {297, fixY(global.director.designSize[2], 460)}}, {"crystal", {253, fixY(global.director.designSize[2], 460)}}, {"gold", {550, fixY(global.director.designSize[2], 460)}}, {"exp", {196, fixY(global.director.designSize[2], 427)}}})
+    local defaultPos = {297, fixY(global.director.designSize[2], 460)}
 
     local bsize = obj:getContentSize()
-    local coor2 = obj:convertToNodeSpace(ccp(bsize.width/2, bsize.height+10))
+    local coor2 = obj:convertToWorldSpace(ccp(0, bsize.height+10))
+    coor2 = {coor2.x, coor2.y}
 
-    var item = cost.items();
-//        trace("flyObject", cost);
-    //var offY = 0;
     local waitTime = 0
-    for k, v in pairs(cost) do
+    print("FlyObject", simple.encode(self.cost))
+    for k, v in pairs(self.cost) do
         if v ~= 0 then
             local cut = 1
             if v < 10 then
@@ -32,25 +31,55 @@ function FlyObject:ctor(obj, c, cb, delegate)
             self.num = self.num+cut
             local showVal = math.floor(v/cut)
             for j=0, cut-1, 1 do
-                local flyObj = setAnchor(setSize(addSprite(self.bg, "images/"..k..".png"), {self.FLY_WIDTH, self.FLY_HEIGHT}), {0.5, 0})
+                local flyObj = setAnchor(setSize(addSprite(self.bg, k..".png"), {self.FLY_WIDTH, self.FLY_HEIGHT}), {0.5, 0})
                 local tar = getDefault(TarPos, k, self.defaultPos)
                 local dis = distance(coor2, tar)
-                flyObj:runAction(sequence(itintto(0, 0, 0, 0), delaytime(waitTime), itintto(255, 255, 255, 255), sinein(bezierby(
-                        1.5+dis*25/1000,
-                        coor2[0], coor2[1], 
-                        coor2[0]+150, coor2[1]+300, 
-                        coor2[0]+100, coor2[1]-100, 
-                        tar[0], tar[1])), callfunc(self, self.pickMe, flyObj)))
-                if j == cut-1 then
-                    showVal = v - showVal*cut
+                --addSprite(self.bg, "dialogRankShadow.png") 
+                setPos(flyObj, coor2)
+                print("flyObjPos", simple.encode(coor2), waitTime, simple.encode(tar), showVal)
+                local difx1 = math.random(getParam("fallX"))+getParam("baseX") 
+                local dify1 = math.random(getParam("fallY"))+getParam("baseY") 
+                local difx2 = math.random(getParam("fallX1"))+getParam("baseX1") 
+                local dify2 = math.random(getParam("fallY1"))+getParam("baseY1") 
+                local dir = math.random(2)
+                if dir == 1 then
+                    difx1 = -difx1
+                    difx2 = -difx2
                 end
-                local words = setColor(setAnchor(setPos(addLabel(flyObj, ''..showVal, "", 23), {self.FLY_WIDTH, self.FLY_HEIGHT / 2}), {0, 0.5}), {6, 26*2.5, 46*2.5})
+
+
+                flyObj:runAction(sequence(
+                    {   
+                        fadeto(0, 0), 
+                        delaytime(waitTime), 
+                        fadeto(0, 255), 
+                    sinein(bezierto(
+                        1.5+dis/100*0.25,
+                        coor2[1], coor2[2], 
+                        coor2[1]+difx1, coor2[2]+dify1, 
+                        coor2[1]+difx2, coor2[2]-dify2, 
+                        tar[1], tar[2])), 
+                        callfunc(self, self.pickMe, flyObj)
+                    }))
+                if j == cut-1 then
+                    showVal = v - showVal*(cut-1)
+                end
+                local words = ui.newBMFontLabel({text=str(showVal), size=23, color={210, 125, 44}})
+                setPos(words, {self.FLY_WIDTH+20, self.FLY_HEIGHT/2})
+                flyObj:addChild(words)
+                --local words = setColor(setAnchor(setPos(addLabel(flyObj, str(showVal), "", 23), {self.FLY_WIDTH, self.FLY_HEIGHT / 2}), {0, 0.5}), {210, 125, 44})
                 waitTime = waitTime+0.2
             end
         end
     end
 end
 function FlyObject:pickMe(param)
+    print("pickMe")
     removeSelf(param)
     self.num = self.num-1
+    if self.num == 0 then
+        if self.callback ~= nil then
+            self.callback(self.delegate)
+        end
+    end
 end

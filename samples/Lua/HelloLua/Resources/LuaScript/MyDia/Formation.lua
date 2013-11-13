@@ -14,7 +14,6 @@ function Formation:goFight(num, dataNum)
     local scene = {bg=CCScene:create()}
     scene.bg:addChild(ground:initView())
     
-    CCDirector:sharedDirector():getScheduler():setTimeScale(2)
     global.director:pushScene(scene)
     return false 
 end
@@ -35,6 +34,9 @@ function Formation:ctor(mainDialog, friendUid, enemyUser)
     self.mainDialog = mainDialog
     self.friendUid = friendUid
     self.enemyUser = enemyUser
+    --第一个选择的英雄
+    self.first = nil
+    self.second = nil
 
     self.bg = CCLayer:create()
     self.flowTab = setPos(addNode(self.bg), {20, self.INITOFF})
@@ -67,7 +69,10 @@ function Formation:getFormation(rep, param)
                 break
             end
         end
-        local name = Logic.allHeroData[hdata['kind']]['name']
+        print("name try get", hdata["kind"])
+        print("roleView", json.encode(Logic.roleViewProperty))
+        local name = Logic.roleViewProperty[getViewId(hdata['kind'])]['remark']
+        --dataNum = self.content[selTag][4]
         table.insert(self.content, {name..' '..hdata['job']..'转'..' '..hdata['level']..'级', self.adjustHero, count, k})
     end
 
@@ -89,10 +94,30 @@ function Formation:touchBegan(x, y)
         self.backNode = self.data[child:getTag()][2]
         print('touchBegan', sp, sp.setTexture, self.backNode)
         setTexture(sp, 'red.png')
+
+        self.selTag = child:getTag()
+
+        --[[
+        --选择第一个英雄
+        if self.content[self.selTag][2] ~= self.adjustHero then
+            if self.first == nil then
+                self.first = self.selTag
+                self.firstSelect = sp
+                self.firstBackNode = self.data[self.selTag][2]
+            elseif self.second == nil then
+                self.second = self.selTag
+                self.secondSelect = sp
+                self.secondBackNode = self.data[self.selTag][2]
+            end
+        end
+        self.selected = sp
+        --]]
+
         self.selected = sp
         self.oldPos = getPos(self.backNode)
         adjustZord(self.backNode, 999) 
-        self.selTag = child:getTag()
+
+        print("selTag", self.selTag, self.selected, json.encode(self.oldPos))
     end
 end
 
@@ -105,9 +130,11 @@ function Formation:touchMoved(x, y)
     local oldPos = self.lastPoints
     self.lastPoints = {x, y}
     local dify = self.lastPoints[2]-oldPos[2]
+    print("sel function", self.selTag, self.content[self.selTag][2], self.adjustHero)
     if self.selTag == nil then
         self:moveBack(dify)
     elseif self.selTag ~= nil and self.content[self.selTag][2] == self.adjustHero then
+        print("move backNode")
         local curPos = getPos(self.backNode)
         setPos(self.backNode, {curPos[1], curPos[2]+dify})
     end
@@ -116,6 +143,8 @@ end
 function Formation:touchEnded(x, y)
     local newPos = {x, y}
     if self.selTag ~= nil and self.content[self.selTag][2] == self.adjustHero then
+        --两个都选择则交换
+        
         if self.selected ~= nil then
             self.backNode:retain()
             removeSelf(self.backNode)
@@ -128,21 +157,31 @@ function Formation:touchEnded(x, y)
                 ct = child:getTag()
             end
 
-            if child ~= nil and ct ~= #self.content and ct ~= #self.content-1 then
+            if child ~= nil and self.content[ct][2] == self.adjustHero then
                 local cp = getPos(child)
                 setPos(child, self.oldPos)
                 setPos(self.backNode, cp)
 
                 child:setTag(bt)
                 self.backNode:setTag(ct)
-                local tv = Logic.formation[ct]
-                Logic.formation[ct] = Logic.formation[bt]
-                Logic.formation[bt] = tv
+                    
+                --交换formation中的位置
+                local fa = self.content[bt][4] 
+                local fb = self.content[ct][4]
+                local tv = Logic.formation[fa]
+                Logic.formation[fa] = Logic.formation[fb]
+                Logic.formation[fb] = tv
+
                 local bd = self.data[bt]
                 local cd = self.data[ct]
 
                 self.data[ct] = bd
                 self.data[bt] = cd
+
+                local aname = self.content[bt][1]
+                local bname = self.content[ct][1]
+                self.content[bt][1] = bname
+                self.content[ct][1] = aname
             else
                 setPos(self.backNode, self.oldPos)
             end
@@ -157,15 +196,6 @@ function Formation:touchEnded(x, y)
             if ret then
                 return
             end
-            --[[
-            if i == #self.content-1 then
-                global.httpController:addRequest('setFormation', dict({{'uid',1}, {'formation', simple.encode(Logic.formation)}}) )
-            elseif i == #self.content then
-                global.httpController:addRequest('setFormation', dict({{'uid',1}, {'formation', simple.encode(Logic.formation)}}) )
-                global.director:popView()
-                return
-            end
-            --]]
         end
     end
 

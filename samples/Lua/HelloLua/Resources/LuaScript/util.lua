@@ -47,12 +47,16 @@ end
 function registerEnterOrExit(obj)
     local function onEnterOrExit(tag)
         if tag == 'enter' then
-            obj:enterScene()
+            if obj.enterScene ~= nil then
+                obj:enterScene()
+            end
         elseif tag == 'exit' then
             if obj.updateFunc ~= nil then
                 CCDirector:sharedDirector():getScheduler():unscheduleScriptEntry(obj.updateFunc)
             end
-            obj:exitScene()
+            if obj.exitScene ~= nil then
+                obj:exitScene()
+            end
         end
     end
     obj.bg:registerScriptHandler(onEnterOrExit)
@@ -221,7 +225,7 @@ function repeatForever(act)
     return CCRepeatForever:create(act)
 end
 function rotateby(t, ang)
-    return CCRotateBy:create(t/1000, ang)
+    return CCRotateBy:create(t, ang)
 end
 function moveto(d, x, y)
     local mov = CCMoveTo:create(d, ccp(x, y))
@@ -237,8 +241,14 @@ end
 function expin(act)
     return CCEaseExponentialIn:create(act)
 end
+function fadein(t)
+    return CCFadeIn:create(t)
+end
 function fadeout(t)
     return CCFadeOut:create(t)
+end
+function fadeto(t, o)
+    return CCFadeTo:create(t, o)
 end
 function delaytime(t)
     return CCDelayTime:create(t)
@@ -253,10 +263,17 @@ end
 function scaleto(t, sx, sy)
     return CCScaleTo:create(t, sx, sy)
 end
+function scaleby(t, sx, sy)
+    return CCScaleBy:create(t, sx, sy)
+end
 
 function callfunc(delegate, cb, param)
     local function cm()
-        cb(delegate, param)
+        if delegate ~= nil then
+            cb(delegate, param)
+        else
+            cb(param)
+        end
     end
     return CCCallFunc:create(cm)
 end
@@ -311,9 +328,15 @@ function frames(pattern, begin, last)
     --如果不是plist 文件则 spriteFrames 没有办法复用 addSpriteFrame
     --单个图片文件 只能使用 
     local spc = CCSpriteFrameCache:sharedSpriteFrameCache()
-    for i=begin, last, 1 do
+    local di = 1
+    if begin > last then
+        di = -1
+    end
+    for i=begin, last, di do
         local fn = string.format(pattern, i)
         local frame = spc:spriteFrameByName(fn)
+        print("spriteFrameByName", fn)
+        --Cache中没有这个Frame 使用 图片加载
         if frame == nil then
             local tex = CCTextureCache:sharedTextureCache():addImage(fn)
             local sz = tex:getContentSize()
@@ -329,20 +352,29 @@ end
 
 function animate(t, arr)
     local count = arr:count() 
-    local animation = CCAnimation:createWithSpriteFrames(arr, t/1000/count)
+    local animation = CCAnimation:createWithSpriteFrames(arr, t)
     local ani = CCAnimate:create(animation)
     return ani
+end
+
+function makeAnimation(t, arr)
+    local count = arr:count() 
+    local animation = CCAnimation:createWithSpriteFrames(arr, t)
+    --local ani = CCAnimate:create(animation)
+    return animation
 end
 
 --修正主picture 在images 文件夹
 --修正key --->xxx.plist/x.png
 --降低资源包
+--name = xxx.plist
 function addPlistSprite(name)
     --print("addPlistSprite", name)
-    local dict = CCDictionary:createWithContentsOfFile('images/'..name)
+    local dict = CCDictionary:createWithContentsOfFile(name)
     local metaData = tolua.cast(dict:objectForKey("metadata"), 'CCDictionary')
+    --texturePath keep
     local texturePath = metaData:valueForKey("textureFileName"):getCString()
-    texturePath = 'images/'..texturePath
+    texturePath = texturePath
     local texture = CCTextureCache:sharedTextureCache():addImage(texturePath)
     local frames = tolua.cast(dict:objectForKey("frames"), "CCDictionary")
     local allKeys = frames:allKeys()
@@ -433,8 +465,12 @@ function setDesignScale(sp)
     sp:setScaleY(global.director.disSize[2]/global.director.designSize[2])
     return sp
 end
+function setRotation(sp, r)
+    sp:setRotation(r)
+    return sp
+end
 
-function setSca(sp, sca)
+function setScale(sp, sca)
     sp:setScale(sca)
     return sp
 end
@@ -458,7 +494,16 @@ function setVisible(s, v)
     s:setVisible(v)
     return s
 end
-
+function getStr(key, rep)
+    local s = Logic.strings[key]
+    if s == nil then
+        return key
+    end
+    s = s["eng"]
+    s = replaceStr(s, rep)
+    return s
+end
+--[[
 function getStr(key, rep)
     local s = Strings[key]
     if s == nil then
@@ -472,6 +517,7 @@ function getStr(key, rep)
     end
     return s
 end
+--]]
 
 --可以参考nozomi MyWorld 网格 笛卡尔坐标 仿射坐标的转化
 --从 笛卡尔坐标 到 左下角的normal 坐标
@@ -681,6 +727,9 @@ function getGain(kind, id)
 end
 
 function replaceStr(s, rep)
+    if rep == nil then
+        return s
+    end
     local temp = {}
     for k, v in ipairs(rep) do
         if (k-1)%2 == 0 then
@@ -850,4 +899,79 @@ function addReq(req, postData, handler, param, delegate)
 end
 function showDialog(w)
     global.director.curScene.dialogController:addBanner(UpgradeBanner.new(w, {255, 255, 255}), nil, nil)
+end
+local mapV = {
+["0"]=0,
+["1"]=1,
+['2']=2,
+['3']=3,
+['4']=4,
+['5']=5,
+['6']=6,
+['7']=7,
+['8']=8,
+['9']=9,
+a=10,
+b=11,
+c=12,
+d=13,
+e=14,
+f=15,
+}
+local function htod(v)
+    local v1 = mapV[string.sub(v, 1, 1)]
+    local v2 = mapV[string.sub(v, 2, 2)]
+    return v1*16+v2
+end
+function hexToCol(h)
+    local r = string.sub(h, 1, 2)
+    local g = string.sub(h, 3, 4)
+    local b = string.sub(h, 5, 6)
+    return {htod(r), htod(g), htod(b)} 
+end
+function arrToCol(a)
+    return ccc3(a[1], a[2], a[3])
+end
+function str(s)
+    return ""..s
+end
+
+--动画名称
+--动画名字pattern
+--动画开始frame
+--动画结束frame
+--动画frame 之间的 间隔
+--动画时间
+--是否是 SpriteFrame  还是普通的Image
+function createAnimation(name, format, a,b,c,t, isFrame)
+    local animation = CCAnimationCache:sharedAnimationCache():animationByName(name)
+    if not animation then
+        animation = CCAnimation:create()
+        --从SpriteFrameCache 中获取动画Frame
+        if isFrame then
+            local cache = CCSpriteFrameCache:sharedSpriteFrameCache()
+            for i=a, b, c do
+                animation:addSpriteFrame(cache:spriteFrameByName(string.format(format, i)))
+            end
+        else
+            for i=a, b, c do
+                animation:addSpriteFrameWithFileName(string.format(format, i))
+            end
+        end
+        animation:setDelayPerUnit(t*c/(b-a+c))
+        animation:setRestoreOriginalFrame(true)
+        CCAnimationCache:sharedAnimationCache():addAnimation(animation, name)
+    end
+    return animation
+end
+
+function removeTemp(n)
+    removeSelf(n)
+end
+function getLen(t)
+    local c = 0
+    for k, v in pairs(t) do
+        c = c+1
+    end
+    return c
 end

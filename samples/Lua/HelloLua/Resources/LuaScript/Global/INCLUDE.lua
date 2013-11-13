@@ -6,6 +6,7 @@ require "data.constant"
 require "Global.Timer"
 
 require "views.Dark"
+require "model.Music"
 require "display"
 require "ui"
 require "Global.director"

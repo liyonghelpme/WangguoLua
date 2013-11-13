@@ -1,3 +1,7 @@
+require "views.Cloud"
+require "views.FriendDialog"
+require "views.BigMap"
+require "views.Rank"
 ChildMenuLayer = class()
 function ChildMenuLayer:ctor(index, funcs, s, otherFunc, menu)
     self.buts = dict({
@@ -13,6 +17,7 @@ function ChildMenuLayer:ctor(index, funcs, s, otherFunc, menu)
     {"rank", {"menu_button_rank.png", self.onRank}},
     {"setting", {"menu_button_setting.png", self.onSetting}},
     {"store", {"menu_button_store.png", self.onStore}},
+    {"attack", {"menu_button_attack.png", self.onAttack}},
 
 
     {"acc", {"menu_button_acc.png", self.onAcc}},
@@ -67,7 +72,7 @@ function ChildMenuLayer:ctor(index, funcs, s, otherFunc, menu)
     self.offset = offset
     
     self.bg = CCNode:create()
-    self.sp = setSize(addSprite(self.bg, "images/dark0.png"), {self.DARK_WIDTH, height})
+    self.sp = setSize(addSprite(self.bg, "dark0.png"), {self.DARK_WIDTH, height})
     if index == 0 then
         setPos(setAnchor(self.sp, {0, 1}), {-self.DARK_WIDTH, fixY(nil, offset, nil, 1)})
     else
@@ -79,13 +84,46 @@ function ChildMenuLayer:ctor(index, funcs, s, otherFunc, menu)
     else
         addAction(self.sp, expout(moveto(0.3, global.director.disSize[1], fixY(nil, offset, nil, 1))))
     end
-
+    
+    self.allButtons = {}
     for i=1, #self.functions, 1 do
         local model = self.buts[self.functions[i]]
-        local button = ui.newButton({image="images/"..model[1], delegate=self, callback=model[2]}):setAnchor(0.5, 0.5)
+        local button = ui.newButton({image=model[1], delegate=self, callback=model[2]}):setAnchor(0.5, 0.5)
         setPos(button.bg, {self.DARK_WIDTH/2, self.OFFY/2+self.OFFY*(i-1)})
         self.sp:addChild(button.bg)
+        self.allButtons[self.functions[i]] = button
     end
+
+    registerEnterOrExit(self)
+end
+function ChildMenuLayer:enterScene()
+    --生成时就开始接受消息
+    Event:registerEvent(EVENT_TYPE.TAP_STORE, self)
+    Event:registerEvent(EVENT_TYPE.BATTLE, self)
+end
+function ChildMenuLayer:receiveMsg(name, msg)
+    if name == EVENT_TYPE.TAP_STORE then
+        local b = self.allButtons['store']
+        print("tap store", b)
+        if b ~= nil then
+            local h = Hint.new()
+            b.bg:addChild(h.bg)
+            --setPos(h, {50, 50})
+            NewLogic.setHint(h)
+        end
+    elseif name == EVENT_TYPE.BATTLE then
+        local b = self.allButtons['attack']
+        if b ~= nil then
+            local h = Hint.new()
+            b.bg:addChild(h.bg)
+            --setPos(h, {50, 50})
+            NewLogic.setHint(h)
+        end
+    end
+end
+function ChildMenuLayer:exitScene()
+    Event:unregisterEvent(EVENT_TYPE.BATTLE, self)
+    Event:unregisterEvent(EVENT_TYPE.TAP_STORE, self)
 end
 function ChildMenuLayer:removeSelf()
     if self.position == 0 then
@@ -98,6 +136,58 @@ end
 
 function ChildMenuLayer:onStore()
     self.menu:cancelAllMenu()
+    MyPlugins:getInstance():sendCmd("hideAds", "");
     global.director:pushView(Store.new(self.scene), 1, 0)
+    --NewLogic.nextStep()
+    NewLogic.triggerEvent(NEW_STEP.STORE)
+end
+function ChildMenuLayer:onPlan()
+    global.director.curScene:closeGlobalMenu(self)
+    global.director.curScene:doPlan()
+end
+function ChildMenuLayer:onSell()
+    global.director.curScene:closeGlobalMenu(self)
+    global.director.curScene:doSell()
 end
 
+function ChildMenuLayer:onFriend()
+    global.director.curScene:closeGlobalMenu(self)
+    MyPlugins:getInstance():sendCmd("share", "")
+
+    local r = math.random(2)
+    local reward = {}
+    if r == 1 then
+        reward.silver = 10
+        addBanner(getStr("shareReward", {"[NUM]", str(10), "[KIND]", getStr("silver")}))
+    else 
+        reward.crystal = 10
+        addBanner(getStr("shareReward", {"[NUM]", str(10), "[KIND]", getStr("crystal")}))
+    end
+    sendReq("killMonster", dict({{"uid", global.user.uid}, {"gain", reward}}))
+    global.user:doAdd(reward)
+end
+function ChildMenuLayer:onSetting()
+    global.director.curScene:closeGlobalMenu(self)
+    addBanner(getStr("noFunc"))
+end
+function ChildMenuLayer:onMap()
+    global.director.curScene:closeGlobalMenu(self)
+    global.director:pushView(BigMap.new(), 1, 0)
+end
+function ChildMenuLayer:onRank()
+    global.director.curScene:closeGlobalMenu(self)
+    global.director:pushView(Rank.new(), 1, 0)
+end
+
+function ChildMenuLayer:onMail()
+    global.director.curScene:closeGlobalMenu(self)
+    MyPlugins:getInstance():sendCmd("feedback", "")
+end
+
+
+--切换场景之前保证当前场景的 所有dialog都关闭了
+function ChildMenuLayer:onAttack()
+    global.director.curScene:closeGlobalMenu(self)
+    BattleLogic.prepareState()
+    global.director:pushView(Cloud.new(), 1, 0)
+end

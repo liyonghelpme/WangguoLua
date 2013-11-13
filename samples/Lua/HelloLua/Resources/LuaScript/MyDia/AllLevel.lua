@@ -8,6 +8,7 @@ function AllLevel:goUpdate()
     return true
 end
 function AllLevel:goLevel(num, dataNum)
+    Logic.curLevel = dataNum
     global.director:pushView(AllFriend.new(nil, Logic.level[dataNum]), 1, 0, 1)
     return false
 end

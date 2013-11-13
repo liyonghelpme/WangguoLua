@@ -27,7 +27,7 @@ function HttpController:doRequest()
                 print('issuc', isSuc)
                 rep = nil
             else
-                print("url data", url, simple.encode(data), request:getResponseString())
+                print("url data", url, simple.encode(data))
                 rep = simple.decode(request:getResponseString())
             end
 
