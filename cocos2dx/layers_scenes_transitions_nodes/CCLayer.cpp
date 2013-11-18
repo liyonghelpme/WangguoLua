@@ -113,7 +113,7 @@ void CCLayer::registerWithTouchDispatcher()
 	       pDispatcher->addTargetedDelegate(this,
 						m_pScriptTouchHandlerEntry->getPriority(),
 						m_pScriptTouchHandlerEntry->getSwallowsTouches());
-	       LUALOG("[LUA] Add touch event handler: %d", m_pScriptTouchHandlerEntry->getHandler());
+	       LUALOG("[LUA] Add touch event handler: %d %d", m_pScriptTouchHandlerEntry->getHandler(), m_pScriptTouchHandlerEntry->getPriority());
 	    }
     }
     else
